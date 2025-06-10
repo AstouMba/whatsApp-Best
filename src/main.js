@@ -25,8 +25,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   
   if(username && phone) {
     try {
-      const res = await fetch(`https://json-server-vzzw.onrender.com/users?username=${encodeURIComponent(username)}&phone=${encodeURIComponent(phone)}`);
-      const users = await res.json();
+const baseUrl = "https://json-server-vzzw.onrender.com/users";
+const query = `?username=${encodeURIComponent(username)}&phone=${encodeURIComponent(phone)}`;
+const res = await fetch(baseUrl + query);      const users = await res.json();
       if(users.length > 0) {
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('appContainer').style.display = '';
