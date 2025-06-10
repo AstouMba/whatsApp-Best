@@ -25,13 +25,13 @@
       <label class="block text-[#25d366] text-sm font-semibold mb-2" for="username">Nom d'utilisateur</label>
       <input id="username" type="text" autocomplete="username"
         class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
-        placeholder="admin" required />
+        placeholder="admin" />
     </div>
     <div class="mb-6">
       <label class="block text-[#25d366] text-sm font-semibold mb-2" for="password">Numéro de Téléphone</label>
       <input id="phone" type="tel" autocomplete="tel"
         class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
-        placeholder="77199...." required />
+        placeholder="77199...." />
     </div>
     <button type="submit"
       class="w-full bg-[#25d366] hover:bg-[#1ebc59] text-white font-bold py-2 px-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition">
@@ -55,13 +55,13 @@
           <label class="block text-[#25d366] text-sm font-semibold mb-2" for="registerUsername">Nom d'utilisateur</label>
           <input id="registerUsername" type="text"
             class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
-            placeholder="Votre nom" required />
+            placeholder="Votre nom" />
         </div>
         <div class="mb-6">
           <label class="block text-[#25d366] text-sm font-semibold mb-2" for="registerPhone">Numéro de Téléphone</label>
           <input id="registerPhone" type="tel"
             class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
-            placeholder="77199...." required />
+            placeholder="77199...." />
         </div>
         <button type="submit"
           class="w-full bg-[#25d366] hover:bg-[#1ebc59] text-white font-bold py-2 px-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition">
@@ -102,7 +102,7 @@
           </nav>
           <!-- Profil utilisateur en bas, optionnel -->
           <div class="flex flex-col items-center mt-4">
-            <img src="your-avatar.png" alt="Avatar" class="w-8 h-8 rounded-full"/>
+            <img src="astou.jpeg" alt="Avatar" class="w-8 h-8 rounded-full"/>
           </div>
         </aside>
 
@@ -144,12 +144,12 @@
                 <form id="addContactForm" class="space-y-4">
                   <div>
                     <label class="block text-[#25d366] text-sm font-semibold mb-1" for="contactName">Nom</label>
-                    <input id="contactName" type="text" required
+                    <input id="contactName" type="text" 
                       class="w-full px-3 py-2 rounded-lg bg-[#111b21] border border-[#25d366] text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366]"/>
                   </div>
                   <div>
                     <label class="block text-[#25d366] text-sm font-semibold mb-1" for="contactPhone">Numéro</label>
-                    <input id="contactPhone" type="tel" required
+                    <input id="contactPhone" type="tel" 
                       class="w-full px-3 py-2 rounded-lg bg-[#111b21] border border-[#25d366] text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366]"/>
                   </div>
                   <div>
@@ -257,6 +257,6 @@
   </div>
 </section>
 
-<script src="./src/main.js"></script>
+<script type="module" src="./src/main.js"></script>
 </body>
 </html>
