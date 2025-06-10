@@ -25,7 +25,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   
   if(username && phone) {
     try {
-const baseUrl = "https://json-server-vzzw.onrender.com/users";
+const baseUrl = "https://json-server-vzzw.onrender.com/users"; 
 const query = `?username=${encodeURIComponent(username)}&phone=${encodeURIComponent(phone)}`;
 const res = await fetch(baseUrl + query);      const users = await res.json();
       if(users.length > 0) {
