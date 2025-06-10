@@ -32,11 +32,16 @@ const res = await fetch(baseUrl + query);      const users = await res.json();
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('appContainer').style.display = '';
         loginError.textContent = "";
+
+        console.log("Connexion réussie pour l'utilisateur :", users[0].username);
+        
       } else {
         loginError.textContent = "Nom d'utilisateur ou numéro incorrect.";
+        console.log("Échec de la connexion : utilisateur non trouvé.");
       }
     } catch (err) {
       loginError.textContent = "Erreur de connexion au serveur.";
+      console.log("Erreur lors de la connexion :", err);
     }
   } else {
     loginError.textContent = "Merci de remplir tous les champs.";
