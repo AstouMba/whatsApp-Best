@@ -42,6 +42,8 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   }
 });
 
+
+
 // --- Gestion du menu principal ---
 document.getElementById('btnNewGroup').addEventListener('click', function(e) {
   e.preventDefault();

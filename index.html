@@ -37,7 +37,40 @@
       class="w-full bg-[#25d366] hover:bg-[#1ebc59] text-white font-bold py-2 px-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition">
       Se connecter
     </button>
+    <!-- À placer sous le bouton "Se connecter" de ton formulaire de login -->
+    <p class="mt-4 text-center text-[#25d366]">
+      <a href="#" id="showRegisterForm" class="underline hover:text-[#1ebc59] transition">Créer un compte</a>
+    </p>
   </form>
+  <!-- À placer dans ton HTML principal, juste après le form login, caché par défaut -->
+      <form id="registerForm" class="w-full max-w-sm bg-[#202c33] border-2 border-[#25d366] p-8 rounded-xl shadow-2xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden z-50">
+        <div class="flex flex-col items-center mb-6">
+          <div class="w-16 h-16 border-4 border-[#25d366] bg-[#111b21] rounded-full flex items-center justify-center mb-2 shadow">
+            <i class="fa-solid fa-user-plus text-[#25d366] text-3xl"></i>
+          </div>
+          <h2 class="text-2xl font-extrabold text-[#25d366] mb-1">Créer un compte</h2>
+        </div>
+        <div id="registerError" class="text-red-500 text-center text-sm mb-4"></div>
+        <div class="mb-4">
+          <label class="block text-[#25d366] text-sm font-semibold mb-2" for="registerUsername">Nom d'utilisateur</label>
+          <input id="registerUsername" type="text"
+            class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
+            placeholder="Votre nom" required />
+        </div>
+        <div class="mb-6">
+          <label class="block text-[#25d366] text-sm font-semibold mb-2" for="registerPhone">Numéro de Téléphone</label>
+          <input id="registerPhone" type="tel"
+            class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
+            placeholder="77199...." required />
+        </div>
+        <button type="submit"
+          class="w-full bg-[#25d366] hover:bg-[#1ebc59] text-white font-bold py-2 px-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition">
+          S'inscrire
+        </button>
+        <p class="mt-4 text-center text-[#25d366]">
+          <a href="#" id="backToLogin" class="underline hover:text-[#1ebc59] transition">Déjà un compte ? Se connecter</a>
+        </p>
+      </form>
 </div>
 
    <!-- TON APP (affichée après login admin) -->
@@ -225,5 +258,6 @@
 </section>
 
 <script src="src/main.js"></script>
+<script src="src/register.js"></script>
 </body>
 </html>
