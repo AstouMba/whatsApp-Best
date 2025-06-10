@@ -1,3 +1,6 @@
+// --- Déclaration de l'URL backend (à utiliser partout) ---
+const API_BASE_URL = "https://json-server-vzzw.onrender.com";
+
 // --- Gestion des menus contextuels ---
 const menuBtn = document.getElementById('menuBtn');
 const menuDropdown = document.getElementById('menuDropdown');
@@ -25,10 +28,11 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   
   if(username && phone) {
     try {
-const baseUrl = "https://json-server-vzzw.onrender.com/users"; 
-const query = `?username=${encodeURIComponent(username)}&phone=${encodeURIComponent(phone)}`;
-const res = await fetch(baseUrl + query);      const users = await res.json();
-        console.log("avant :", users[0].username);
+      const baseUrl = `${API_BASE_URL}/users`; 
+      const query = `?username=${encodeURIComponent(username)}&phone=${encodeURIComponent(phone)}`;
+      const res = await fetch(baseUrl + query);
+      const users = await res.json();
+      console.log("avant :", users[0]?.username);
 
       if(users.length > 0) {
         document.getElementById('loginPage').style.display = 'none';
@@ -47,58 +51,6 @@ const res = await fetch(baseUrl + query);      const users = await res.json();
     }
   } else {
     loginError.textContent = "Merci de remplir tous les champs.";
-  }
-});
-
-// --- Gestion du formulaire d'inscription utilisateur ---
-
-// Afficher le formulaire d'inscription
-document.getElementById('showRegisterForm').addEventListener('click', function(e) {
-  e.preventDefault();
-  document.getElementById('loginForm').parentElement.style.display = 'none';
-  document.getElementById('registerForm').classList.remove('hidden');
-});
-
-// Retour à la connexion
-document.getElementById('backToLogin').addEventListener('click', function(e) {
-  e.preventDefault();
-  document.getElementById('registerForm').classList.add('hidden');
-  document.getElementById('loginForm').parentElement.style.display = '';
-});
-
-// Inscription (ajout d'utilisateur dans json-server)
-document.getElementById('registerForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const username = document.getElementById('registerUsername').value.trim();
-  const phone = document.getElementById('registerPhone').value.trim();
-  const registerError = document.getElementById('registerError');
-
-  if (!username || !phone) {
-    registerError.textContent = "Merci de remplir tous les champs.";
-    return;
-  }
-
-  try {
-    // Vérifier si l'utilisateur existe déjà
-    const res = await fetch(`https://json-server-vzzw.onrender.com/users?username=${encodeURIComponent(username)}&phone=${encodeURIComponent(phone)}`);
-    const users = await res.json();
-    if (users.length > 0) {
-      registerError.textContent = "Cet utilisateur existe déjà.";
-      return;
-    }
-    // Ajouter le nouvel utilisateur
-    const addRes = await fetch('https://json-server-vzzw.onrender.com/users', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ username, phone })
-    });
-    if (!addRes.ok) throw new Error();
-    registerError.textContent = "";
-    alert("Compte créé avec succès ! Connectez-vous.");
-    document.getElementById('registerForm').classList.add('hidden');
-    document.getElementById('loginForm').parentElement.style.display = '';
-  } catch (err) {
-    registerError.textContent = "Erreur lors de l'inscription.";
   }
 });
 
@@ -130,7 +82,7 @@ let contacts = []; // Stocke les contacts de json-server
 
 // Récupération des contacts depuis json-server
 function fetchContacts() {
-  fetch('https://json-server-vzzw.onrender.com/contacts')
+  fetch(`${API_BASE_URL}/contacts`)
     .then(res => res.json())
     .then(data => {
       contacts = data;
@@ -200,7 +152,7 @@ document.getElementById('addContactForm').addEventListener('submit', async funct
   }
 
   try {
-    const response = await fetch('https://json-server-vzzw.onrender.com/contacts', {
+    const response = await fetch(`${API_BASE_URL}/contacts`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ name, phone, avatar })
