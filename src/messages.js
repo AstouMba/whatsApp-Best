@@ -8,14 +8,13 @@ export class MessagesManager {
     this.currentContactId = null;
     this.messages = [];
     this.isTyping = false;
-    this.pollingInterval = null;
+    this.pollingInterval = null; // Pour le polling
 
     this.init();
   }
 
   init() {
     this.setupEventListeners();
-    // Pas de polling global au départ, il ne démarre que sur selectContact !
   }
 
   setupEventListeners() {
@@ -68,7 +67,7 @@ export class MessagesManager {
       await this.sendMessageToServer(message);
       messageInput.value = '';
       messageInput.focus();
-      // On recharge la conversation après l'envoi pour voir le nouveau message (et ceux reçus pendant l'envoi)
+      // Recharge la conversation après l'envoi pour voir le nouveau message (et ceux reçus pendant l'envoi)
       await this.loadConversation(this.currentContactId);
     } catch (error) {
       console.error('Erreur lors de l\'envoi:', error);
