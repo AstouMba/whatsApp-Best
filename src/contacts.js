@@ -5,6 +5,7 @@ export class ContactsManager {
     this.API_BASE_URL = apiBaseUrl;
     this.currentUser = currentUser;
     this.contacts = [];
+    this.onContactSelected = null; // callback à brancher dans main.js
     this.init();
   }
 
@@ -17,7 +18,6 @@ export class ContactsManager {
   }
 
   setupContactForm() {
-    // Bouton pour ouvrir le formulaire d'ajout
     const btnNewContact = document.getElementById('btnNewContact');
     if (btnNewContact) {
       btnNewContact.addEventListener('click', (e) => {
@@ -26,7 +26,6 @@ export class ContactsManager {
       });
     }
 
-    // Bouton pour annuler l'ajout
     const cancelBtn = document.getElementById('cancelAddContact');
     if (cancelBtn) {
       cancelBtn.addEventListener('click', () => {
@@ -34,7 +33,6 @@ export class ContactsManager {
       });
     }
 
-    // Formulaire d'ajout de contact
     const addContactForm = document.getElementById('addContactForm');
     if (addContactForm) {
       addContactForm.addEventListener('submit', this.handleAddContact.bind(this));
@@ -42,7 +40,6 @@ export class ContactsManager {
   }
 
   setupSearch() {
-    // Recherche dans la sidebar principale
     const searchContacts = document.getElementById('searchContacts');
     if (searchContacts) {
       searchContacts.addEventListener('input', (e) => {
@@ -50,7 +47,6 @@ export class ContactsManager {
       });
     }
 
-    // Recherche dans le panneau selector
     const searchAllContacts = document.getElementById('searchAllContacts');
     if (searchAllContacts) {
       searchAllContacts.addEventListener('input', (e) => {
@@ -60,7 +56,6 @@ export class ContactsManager {
   }
 
   setupContactSelector() {
-    // Bouton "Nouveau chat"
     const nouveauChatBtn = document.querySelector('button[title="Nouveau chat"]');
     if (nouveauChatBtn) {
       nouveauChatBtn.id = "openContactsSelector";
@@ -70,7 +65,6 @@ export class ContactsManager {
       });
     }
 
-    // Bouton fermer le panneau
     const closeBtn = document.getElementById('closeContactsSelector');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
@@ -80,15 +74,6 @@ export class ContactsManager {
   }
 
   setupMenuButtons() {
-    // Autres boutons du menu
-    // const btnNewGroup = document.getElementById('btnNewGroup');
-    // if (btnNewGroup) {
-    //   btnNewGroup.addEventListener('click', (e) => {
-    //     e.preventDefault();
-    //     alert('Fonction "Nouveau groupe" à compléter.');
-    //   });
-    // }
-
     const btnArchives = document.getElementById('btnArchives');
     if (btnArchives) {
       btnArchives.addEventListener('click', (e) => {
@@ -130,12 +115,13 @@ export class ContactsManager {
             <div class="text-xs text-gray-400">${contact.phone || ''}</div>
           </div>
         `;
-      div.addEventListener('click', () => {
-  this.selectContact(contact);
-  document.getElementById('contactsSelectorPanel').classList.add('hidden');
-});
-
-      contactsList.appendChild(div);
+        div.addEventListener('click', () => {
+          if (this.onContactSelected) {
+            this.onContactSelected(contact.id); // Appelle le callback dans main.js
+          }
+          document.getElementById('contactsSelectorPanel').classList.add('hidden');
+        });
+        contactsList.appendChild(div);
       });
   }
 
@@ -159,6 +145,12 @@ export class ContactsManager {
             <div class="text-xs text-gray-400">${contact.phone || ''}</div>
           </div>
         `;
+        div.addEventListener('click', () => {
+          if (this.onContactSelected) {
+            this.onContactSelected(contact.id); // Appelle le callback dans main.js
+          }
+          document.getElementById('contactsSelectorPanel').classList.add('hidden');
+        });
         list.appendChild(div);
       });
   }
@@ -192,5 +184,9 @@ export class ContactsManager {
       errorDiv.textContent = "Erreur lors de l'ajout du contact.";
       console.error('Erreur lors de l\'ajout du contact:', err);
     }
+  }
+
+  findContactById(id) {
+    return this.contacts.find(c => String(c.id) === String(id));
   }
 }
