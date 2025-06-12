@@ -27,6 +27,8 @@ class App {
 
   setupApp() {
     this.setupDropdownMenus();
+    this.setupSidebarNav();
+
     this.loginManager = new LoginManager(this.API_BASE_URL);
     this.registerManager = new RegisterManager(this.API_BASE_URL);
 
@@ -47,6 +49,7 @@ class App {
       this.groupsManager = new GroupsManager(this.API_BASE_URL, this.currentUser, this.contactsManager);
       this.messagesManager = new MessagesManager(this.API_BASE_URL, this.currentUser, this.contactsManager);
 
+      // Connexion entre la sélection du contact et l'affichage des messages
       this.contactsManager.onContactSelected = (contactId) => {
         this.messagesManager.selectContact(contactId);
       };
@@ -55,11 +58,8 @@ class App {
       window.groupsManager = this.groupsManager;
       window.messagesManager = this.messagesManager;
 
-      console.log('Gestionnaires utilisateur initialisés:', {
-        user: this.currentUser,
-        messagesManager: this.messagesManager,
-        groupsManager: this.groupsManager
-      });
+      // Afficher la liste des discussions au login
+      this.showDiscussionsPanel();
     });
 
     document.addEventListener('userLoggedOut', () => {
@@ -101,6 +101,37 @@ class App {
     });
   }
 
+  
+  
+
+  setupSidebarNav() {
+    document.addEventListener('DOMContentLoaded', () => {
+      // Bouton "Discussions" (icône bulle)
+      const discussionsBtn = document.querySelector('button[title="Discussions"]');
+      if (discussionsBtn) {
+        discussionsBtn.addEventListener('click', () => {
+          this.showDiscussionsPanel();
+        });
+      }
+      // Tu peux ajouter d'autres boutons ici si tu veux masquer/afficher d'autres panels
+    });
+  }
+
+  showDiscussionsPanel() {
+    // Affiche uniquement la liste des discussions (contactsList)
+    const contactsPanel = document.getElementById('contactsList');
+    if (contactsPanel) contactsPanel.parentElement.classList.remove('hidden');
+    // Masque la liste des groupes si besoin
+    const groupsList = document.getElementById('groupsList');
+    if (groupsList) groupsList.classList.add('hidden');
+    // Affiche le contactsList (au cas où il serait masqué)
+    if (contactsPanel) contactsPanel.classList.remove('hidden');
+    // Recharge la liste des contacts/discussions si besoin
+    if (this.contactsManager) {
+      this.contactsManager.renderContacts();
+    }
+  }
+
   // Méthodes utilitaires
   getLoginManager() { return this.loginManager; }
   getContactsManager() { return this.contactsManager; }
@@ -120,7 +151,59 @@ class App {
     }));
   }
 }
+document.addEventListener('DOMContentLoaded', () => {
+  // Sélectionne les boutons
+  const allBtn = document.getElementById('filterAllBtn');
+  const unreadBtn = document.getElementById('filterUnreadBtn');
+  const favoriteBtn = document.getElementById('filterFavoriteBtn');
+  const groupsBtn = document.getElementById('filterGroupsBtn');
 
+  // Helper pour changer l'état actif du bouton
+  const setActiveBtn = (activeBtn) => {
+    [allBtn, unreadBtn, favoriteBtn, groupsBtn].forEach(btn => {
+      if (btn === activeBtn) {
+        btn.classList.add('bg-[#25d366]', 'text-white');
+        btn.classList.remove('bg-[#2a3942]', 'text-gray-200');
+      } else {
+        btn.classList.remove('bg-[#25d366]', 'text-white');
+        btn.classList.add('bg-[#2a3942]', 'text-gray-200');
+      }
+    });
+  };
+
+  // Toutes
+  allBtn.addEventListener('click', () => {
+    setActiveBtn(allBtn);
+    window.app.contactsManager.renderContacts(); // toutes les discussions
+    document.getElementById('groupsList').classList.add('hidden');
+    document.getElementById('contactsList').classList.remove('hidden');
+  });
+
+  // Non lues
+  unreadBtn.addEventListener('click', () => {
+    setActiveBtn(unreadBtn);
+    window.app.contactsManager.renderContacts('', {unreadOnly: true});
+    document.getElementById('groupsList').classList.add('hidden');
+    document.getElementById('contactsList').classList.remove('hidden');
+  });
+
+  // Favoris
+  favoriteBtn.addEventListener('click', () => {
+    setActiveBtn(favoriteBtn);
+    window.app.contactsManager.renderContacts('', {favoritesOnly: true});
+    document.getElementById('groupsList').classList.add('hidden');
+    document.getElementById('contactsList').classList.remove('hidden');
+  });
+
+  // Groupes
+  groupsBtn.addEventListener('click', () => {
+    setActiveBtn(groupsBtn);
+    document.getElementById('contactsList').classList.add('hidden');
+    document.getElementById('groupsList').classList.remove('hidden');
+    // Tu peux ajouter une méthode renderGroups() si besoin
+    if (window.app.groupsManager) window.app.groupsManager.renderGroups();
+  });
+});
 // Gestion du panneau paramètres
 document.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settingsBtn');

@@ -1,4 +1,4 @@
-// messages.js - Gestion des messages privés
+// messages.js - Gestion des messages privés avec polling pour quasi temps réel
 
 export class MessagesManager {
   constructor(apiBaseUrl, currentUser, contactsManager) {
@@ -8,17 +8,14 @@ export class MessagesManager {
     this.currentContactId = null;
     this.messages = [];
     this.isTyping = false;
+    this.pollingInterval = null;
 
     this.init();
   }
 
   init() {
     this.setupEventListeners();
-    this.loadMessages();
-    // Branche le callback au cas où contactsManager serait réinitialisé
-    if (this.contactsManager) {
-      this.contactsManager.onContactSelected = (contactId) => this.selectContact(contactId);
-    }
+    // Pas de polling global au départ, il ne démarre que sur selectContact !
   }
 
   setupEventListeners() {
@@ -42,7 +39,7 @@ export class MessagesManager {
   }
 
   async handleSendMessage(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
     const messageInput = document.getElementById('messageInput');
     const content = messageInput.value.trim();
@@ -71,6 +68,8 @@ export class MessagesManager {
       await this.sendMessageToServer(message);
       messageInput.value = '';
       messageInput.focus();
+      // On recharge la conversation après l'envoi pour voir le nouveau message (et ceux reçus pendant l'envoi)
+      await this.loadConversation(this.currentContactId);
     } catch (error) {
       console.error('Erreur lors de l\'envoi:', error);
       this.showError('messageError', 'Erreur lors de l\'envoi du message');
@@ -123,6 +122,9 @@ export class MessagesManager {
     const messagesList = document.getElementById('messagesList');
     if (!messagesList) return;
 
+    // Vérifie si le message n'est pas déjà affiché
+    if (messagesList.querySelector(`[data-message-id="${message.id}"]`)) return;
+
     const messageElement = this.createMessageElement(message);
     messagesList.appendChild(messageElement);
 
@@ -164,10 +166,27 @@ export class MessagesManager {
     return messageDiv;
   }
 
+  // -------- POLLING --------
+  startPollingConversation(contactId) {
+    this.stopPollingConversation();
+    this.pollingInterval = setInterval(() => {
+      this.loadConversation(contactId);
+    }, 2000); // toutes les 2 secondes
+  }
+
+  stopPollingConversation() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
+
+  // Appelle ceci quand tu sélectionnes un contact
   async selectContact(contactId) {
     this.currentContactId = contactId;
     this.updateCurrentContactDisplay();
     await this.loadConversation(contactId);
+    this.startPollingConversation(contactId);
   }
 
   updateCurrentContactDisplay() {
@@ -181,12 +200,14 @@ export class MessagesManager {
     const nameElement = currentContactDiv.querySelector('h3');
     const statusElement = currentContactDiv.querySelector('p');
 
-    if (contact.avatar) {
-      avatar.innerHTML = `<img src="${contact.avatar}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
-    } else {
-      avatar.innerHTML = '';
-      avatar.className = 'w-12 h-12 bg-[#25d366] rounded-full flex items-center justify-center text-white font-bold';
-      avatar.textContent = contact.name ? contact.name.charAt(0).toUpperCase() : '?';
+    if (avatar) {
+      if (contact.avatar) {
+        avatar.innerHTML = `<img src="${contact.avatar}" class="w-full h-full rounded-full object-cover" alt="Avatar">`;
+      } else {
+        avatar.innerHTML = '';
+        avatar.className = 'w-12 h-12 bg-[#25d366] rounded-full flex items-center justify-center text-white font-bold';
+        avatar.textContent = contact.name ? contact.name.charAt(0).toUpperCase() : '?';
+      }
     }
 
     if (nameElement) {
@@ -223,18 +244,11 @@ export class MessagesManager {
         this.displayMessage(message);
       });
 
+      // Mets à jour le cache local
+      this.messages = allMessages;
+
     } catch (error) {
       console.error('Erreur lors du chargement de la conversation:', error);
-    }
-  }
-
-  async loadMessages() {
-    try {
-      const response = await fetch(`${this.API_BASE_URL}/messages`);
-      this.messages = await response.json();
-    } catch (error) {
-      console.error('Erreur lors du chargement des messages:', error);
-      this.messages = [];
     }
   }
 
