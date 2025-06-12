@@ -40,6 +40,9 @@ export class LoginManager {
         console.log("avant :", users[0]?.username);
 
         if (users.length > 0) {
+          document.dispatchEvent(new CustomEvent('userLoggedIn', {
+            detail: { user: users[0] }
+          }));
           this.showApp();
           loginError.textContent = "";
           console.log("Connexion réussie pour l'utilisateur :", users[0].username);
@@ -59,6 +62,7 @@ export class LoginManager {
   handleLogout(e) {
     e.preventDefault();
     this.showLogin();
+    document.dispatchEvent(new Event('userLoggedOut'));
   }
 
   showApp() {

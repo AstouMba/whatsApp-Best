@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="src/style.css">
 </head>
 <body class="min-h-screen bg-[#111b21] p-2 overflow-hidden text-gray-200">
+
  <!-- PAGE LOGIN (affichée tant que pas connecté) -->
 <div id="loginPage" class="fixed inset-0 w-full h-full bg-[#111b21] flex items-center justify-center z-50">
   <form id="loginForm" class="w-full max-w-sm bg-[#202c33] border-2 border-[#25d366] p-8 rounded-xl shadow-2xl">
@@ -17,7 +18,7 @@
       <div class="w-16 h-16 border-4 border-[#25d366] bg-[#111b21] rounded-full flex items-center justify-center mb-2 shadow">
         <i class="fa-solid fa-message text-[#25d366] text-3xl"></i>
       </div>
-      <h2 class="text-2xl font-extrabold text-[#25d366] mb-1">Sama Whatsapp</h2>
+      <h2 class="text-2xl font-extrabold text-[#25d366] mb-1">Wax-Tadj</h2>
       <p class="text-[#25d366] text-sm opacity-80">Dalal ak Diam</p>
     </div>
     <div id="loginError" class="text-red-500 text-center text-sm mb-4"></div>
@@ -28,7 +29,7 @@
         placeholder="admin" />
     </div>
     <div class="mb-6">
-      <label class="block text-[#25d366] text-sm font-semibold mb-2" for="password">Numéro de Téléphone</label>
+      <label class="block text-[#25d366] text-sm font-semibold mb-2" for="phone">Numéro de Téléphone</label>
       <input id="phone" type="tel" autocomplete="tel"
         class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
         placeholder="77199...." />
@@ -37,211 +38,247 @@
       class="w-full bg-[#25d366] hover:bg-[#1ebc59] text-white font-bold py-2 px-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition">
       Se connecter
     </button>
-    <!-- À placer sous le bouton "Se connecter" de ton formulaire de login -->
     <p class="mt-4 text-center text-[#25d366]">
       <a href="#" id="showRegisterForm" class="underline hover:text-[#1ebc59] transition">Créer un compte</a>
     </p>
   </form>
-  <!-- À placer dans ton HTML principal, juste après le form login, caché par défaut -->
-      <form id="registerForm" class="w-full max-w-sm bg-[#202c33] border-2 border-[#25d366] p-8 rounded-xl shadow-2xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden z-50">
-        <div class="flex flex-col items-center mb-6">
-          <div class="w-16 h-16 border-4 border-[#25d366] bg-[#111b21] rounded-full flex items-center justify-center mb-2 shadow">
-            <i class="fa-solid fa-user-plus text-[#25d366] text-3xl"></i>
-          </div>
-          <h2 class="text-2xl font-extrabold text-[#25d366] mb-1">Créer un compte</h2>
-        </div>
-        <div id="registerError" class="text-red-500 text-center text-sm mb-4"></div>
-        <div class="mb-4">
-          <label class="block text-[#25d366] text-sm font-semibold mb-2" for="registerUsername">Nom d'utilisateur</label>
-          <input id="registerUsername" type="text"
-            class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
-            placeholder="Votre nom" />
-        </div>
-        <div class="mb-6">
-          <label class="block text-[#25d366] text-sm font-semibold mb-2" for="registerPhone">Numéro de Téléphone</label>
-          <input id="registerPhone" type="tel"
-            class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
-            placeholder="77199...." />
-        </div>
-        <button type="submit"
-          class="w-full bg-[#25d366] hover:bg-[#1ebc59] text-white font-bold py-2 px-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition">
-          S'inscrire
-        </button>
-        <p class="mt-4 text-center text-[#25d366]">
-          <a href="#" id="backToLogin" class="underline hover:text-[#1ebc59] transition">Déjà un compte ? Se connecter</a>
-        </p>
-      </form>
+  <form id="registerForm" class="w-full max-w-sm bg-[#202c33] border-2 border-[#25d366] p-8 rounded-xl shadow-2xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden z-50">
+    <div class="flex flex-col items-center mb-6">
+      <div class="w-16 h-16 border-4 border-[#25d366] bg-[#111b21] rounded-full flex items-center justify-center mb-2 shadow">
+        <i class="fa-solid fa-user-plus text-[#25d366] text-3xl"></i>
+      </div>
+      <h2 class="text-2xl font-extrabold text-[#25d366] mb-1">Créer un compte</h2>
+    </div>
+    <div id="registerError" class="text-red-500 text-center text-sm mb-4"></div>
+    <div class="mb-4">
+      <label class="block text-[#25d366] text-sm font-semibold mb-2" for="registerUsername">Nom d'utilisateur</label>
+      <input id="registerUsername" type="text"
+        class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
+        placeholder="Votre nom" />
+    </div>
+    <div class="mb-6">
+      <label class="block text-[#25d366] text-sm font-semibold mb-2" for="registerPhone">Numéro de Téléphone</label>
+      <input id="registerPhone" type="tel"
+        class="shadow appearance-none border border-[#25d366] rounded-lg w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-[#25d366]"
+        placeholder="77199...." />
+    </div>
+    <button type="submit"
+      class="w-full bg-[#25d366] hover:bg-[#1ebc59] text-white font-bold py-2 px-4 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 transition">
+      S'inscrire
+    </button>
+    <p class="mt-4 text-center text-[#25d366]">
+      <a href="#" id="backToLogin" class="underline hover:text-[#1ebc59] transition">Déjà un compte ? Se connecter</a>
+    </p>
+  </form>
 </div>
 
-   <!-- TON APP (affichée après login admin) -->
-    <div id="appContainer" style="display:none;">
-      <div class="container mx-auto h-screen bg-[#222e35] flex shadow-2xl rounded-lg overflow-hidden">
+<!-- APP (affichée après login) -->
+<div id="appContainer" style="display:none;">
+  <div class="container mx-auto h-screen bg-[#222e35] flex shadow-2xl rounded-lg overflow-hidden">
+    <!-- Sidebar verticale type WhatsApp -->
+    <aside class="w-[75px] bg-[#202c33] flex flex-col items-center py-3 px-1 relative border-r border-[#232d35]">
+      <div class="mb-5 relative flex flex-col items-center">
+        <div class="relative">
+          <span class="bg-[#111b21] w-10 h-10 flex items-center justify-center rounded-full border-2 border-[#25d366]">
+            <i class="fa-brands fa-viber text-[#25d366] text-2xl"></i>
+          </span>
+          <span class="absolute -top-2 -right-2 bg-[#25d366] text-white text-xs font-bold rounded-full px-2 py-0.5">220</span>
+        </div>
+      </div>
+      <!-- Navigation verticale WhatsApp style -->
+      <nav class="flex flex-col items-center space-y-6 flex-1 mt-2 w-full">
+        <button title="Discussions" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition">
+          <i class="fa-solid fa-message text-[#aebac1] text-xl"></i>
+        </button>
+        <button title="Statut" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition">
+          <i class="fa-solid fa-circle-notch text-[#aebac1] text-xl"></i>
+        </button>
+        <button id="showGroupsBtn" title="Groupes" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition">
+          <i class="fa-solid fa-users text-[#aebac1] text-xl"></i>
+        </button>
+      </nav>
+      <!-- Paramètres + Profil en bas -->
+      <div class="flex flex-col items-center mt-4 space-y-3">
+        <!-- Bouton paramètres -->
+        <button id="settingsBtn" title="Paramètres" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#232d35] transition">
+          <i class="fa-solid fa-gear text-[#aebac1] text-2xl"></i>
+        </button>
+        <!-- Profil utilisateur -->
+        <img src="astou.jpeg" alt="Avatar" class="w-8 h-8 rounded-full"/>
+      </div>
+    </aside>
 
-        <!-- Sidebar verticale type WhatsApp -->
-        <aside class="w-[75px] bg-[#202c33] flex flex-col items-center py-3 px-1 relative border-r border-[#232d35]">
-          <!-- Logo WhatsApp + badge -->
-          <div class="mb-5 relative flex flex-col items-center">
-            <div class="relative">
-              <span class="bg-[#111b21] w-10 h-10 flex items-center justify-center rounded-full border-2 border-[#25d366]">
-                <i class="fab fa-whatsapp text-[#25d366] text-2xl"></i>
-              </span>
-              <span class="absolute -top-2 -right-2 bg-[#25d366] text-white text-xs font-bold rounded-full px-2 py-0.5">220</span>
+    <div class="flex-1 bg-[#111b21] flex flex-col">
+      <!-- Header WhatsApp style -->
+      <div class="flex items-center justify-between p-4 border-b border-[#232d35] bg-[#202c33] relative">
+        <span class="text-2xl font-bold text-white">Wax-Tadj</span>
+        <div class="flex items-center space-x-3">
+          <button id="openContactsSelector" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition" title="Nouveau chat">
+            <i class="fa-solid fa-square-plus text-[#aebac1] text-xl"></i>
+          </button>
+          <!-- Menu contextuel (3 points verticaux) -->
+          <button id="menuBtn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition relative" title="Menu">
+            <i class="fa-solid fa-ellipsis-v text-[#aebac1] text-xl"></i>
+          </button>
+          <!-- Menu dropdown à afficher au clic sur #menuBtn -->
+          <div id="menuDropdown" class="hidden absolute right-0 top-16 w-48 bg-[#232d35] rounded-lg shadow-lg z-30">
+            <ul class="py-2 text-sm text-gray-200">
+              <li><a href="#" id="btnNewGroup" class="block px-4 py-2 hover:bg-[#2a3942]">Nouveau groupe</a></li>
+              <li><a href="#" id="btnNewContact" class="block px-4 py-2 hover:bg-[#2a3942]">Nouveau contact</a></li>
+              <li><a href="#" id="btnArchives" class="block px-4 py-2 hover:bg-[#2a3942]">Archives</a></li>
+              <li><a href="#" id="btnLogout" class="block px-4 py-2 hover:bg-[#2a3942]">Déconnexion</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- Section principale WhatsApp -->
+      <div class="flex flex-1">
+        <section class="w-[380px] bg-[#202c33] p-4 border-r border-[#232d35] flex flex-col">
+          <div class="relative mb-4">
+            <input type="text" 
+                   id="searchContacts"
+                   placeholder="Rechercher ou démarrer une discussion" 
+                   class="w-full px-4 py-3 bg-[#111b21] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#25d366] placeholder-gray-400"
+            />
+          </div>
+          <section id="addContactSection" class="bg-[#202c33] p-6 rounded-xl shadow-lg w-full max-w-sm mx-auto my-4 hidden">
+            <h2 class="text-xl font-bold text-[#25d366] mb-4">Ajouter un contact</h2>
+            <form id="addContactForm" class="space-y-4">
+              <div>
+                <label class="block text-[#25d366] text-sm font-semibold mb-1" for="contactName">Nom</label>
+                <input id="contactName" type="text" 
+                  class="w-full px-3 py-2 rounded-lg bg-[#111b21] border border-[#25d366] text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366]"/>
+              </div>
+              <div>
+                <label class="block text-[#25d366] text-sm font-semibold mb-1" for="contactPhone">Numéro</label>
+                <input id="contactPhone" type="tel" 
+                  class="w-full px-3 py-2 rounded-lg bg-[#111b21] border border-[#25d366] text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366]"/>
+              </div>
+              <div>
+                <label class="block text-[#25d366] text-sm font-semibold mb-1" for="contactAvatar">Avatar (URL, optionnel)</label>
+                <input id="contactAvatar" type="text"
+                  class="w-full px-3 py-2 rounded-lg bg-[#111b21] border border-[#25d366] text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366]"/>
+              </div>
+              <div class="flex justify-end space-x-2 pt-2">
+                <button type="submit" class="bg-[#25d366] text-white font-bold px-4 py-2 rounded-full hover:bg-[#1ebc59] transition">Ajouter</button>
+                <button type="button" id="cancelAddContact" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-full hover:bg-gray-700 transition">Annuler</button>
+              </div>
+              <div id="addContactError" class="text-red-500 text-sm text-center mt-4"></div>
+            </form>
+          </section>
+          <div class="flex items-center space-x-2 pb-2">
+            <button class="bg-[#25d366] text-white text-xs px-3 py-1 rounded-full font-semibold">Toutes</button>
+            <button class="bg-[#2a3942] text-gray-200 text-xs px-3 py-1 rounded-full">Non lues</button>
+            <button class="bg-[#2a3942] text-gray-200 text-xs px-3 py-1 rounded-full">Favoris</button>
+            <button id="filterGroupsBtn" class="bg-[#2a3942] text-gray-200 text-xs px-3 py-1 rounded-full">Groupes</button>
+          </div>
+          <div id="groupsList" class="mt-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar hidden"></div>
+          <div id="contactsList" class="mt-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar"></div>
+        </section>
+
+        <main class="flex-1 bg-[#111b21] w-[67%] flex flex-col">
+          <div class="bg-[#202c33] p-4 border-b border-[#232d35] flex justify-between items-center">
+            <div id="currentContact" class="flex items-center">
+              <div class="w-12 h-12 bg-[#25d366] rounded-full flex items-center justify-center text-white"></div>
+              <div class="ml-3">
+                <h3 class="font-semibold text-white"></h3>
+                <p class="text-sm text-gray-400"></p>
+              </div>
             </div>
-          </div>
-          <!-- Navigation verticale WhatsApp style -->
-          <nav class="flex flex-col items-center space-y-6 flex-1 mt-2 w-full">
-            <button title="Discussions" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition">
-              <i class="fa-solid fa-message text-[#aebac1] text-xl"></i>
-            </button>
-            <button title="Statut" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition">
-              <i class="fa-solid fa-circle-notch text-[#aebac1] text-xl"></i>
-            </button>
-            <button title="Groupes" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition">
-              <i class="fa-solid fa-users text-[#aebac1] text-xl"></i>
-            </button>
-          </nav>
-          <!-- Profil utilisateur en bas, optionnel -->
-          <div class="flex flex-col items-center mt-4">
-            <img src="astou.jpeg" alt="Avatar" class="w-8 h-8 rounded-full"/>
-          </div>
-        </aside>
-
-        <div class="flex-1 bg-[#111b21] flex flex-col">
-          <!-- Header WhatsApp style -->
-          <div class="flex items-center justify-between p-4 border-b border-[#232d35] bg-[#202c33] relative">
-            <span class="text-2xl font-bold text-white">WhatsApp</span>
-            <div class="flex items-center space-x-3">
-             <button id="openContactsSelector" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition" title="Nouveau chat">
-           <i class="fa-solid fa-square-plus text-[#aebac1] text-xl"></i>
-            </button>
-              <!-- Menu contextuel (3 points verticaux) -->
-              <button id="menuBtn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition relative" title="Menu">
+            <!-- Menu contextuel pour actions -->
+            <div class="relative">
+              <button id="actionsMenuBtn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition" title="Actions">
                 <i class="fa-solid fa-ellipsis-v text-[#aebac1] text-xl"></i>
               </button>
-              <!-- Menu dropdown à afficher au clic sur #menuBtn -->
-              <div id="menuDropdown" class="hidden absolute right-0 top-16 w-48 bg-[#232d35] rounded-lg shadow-lg z-30">
+              <div id="actionsMenuDropdown" class="hidden absolute right-0 mt-2 w-44 bg-[#232d35] rounded-lg shadow-lg z-30">
                 <ul class="py-2 text-sm text-gray-200">
-                  <li><a href="#" id="btnNewGroup" class="block px-4 py-2 hover:bg-[#2a3942]">Nouveau groupe</a></li>
-                    <li><a href="#" id="btnNewContact" class="block px-4 py-2 hover:bg-[#2a3942]">Nouveau contact</a></li>
-                    <li><a href="#" id="btnArchives" class="block px-4 py-2 hover:bg-[#2a3942]">Archives</a></li>
-                    <li><a href="#" id="btnLogout" class="block px-4 py-2 hover:bg-[#2a3942]">Déconnexion</a></li>
+                  <li>
+                    <button id="supprimerBtn" class="flex items-center w-full px-4 py-2 hover:bg-[#2a3942]">
+                      <i class="fa-solid fa-delete-left text-yellow-400 mr-3"></i> Supprimer
+                    </button>
+                  </li>
+                  <li>
+                    <button id="archiveBtn" class="flex items-center w-full px-4 py-2 hover:bg-[#2a3942]">
+                      <i class="fas fa-archive text-[#25d366] mr-3"></i> Archiver
+                    </button>
+                  </li>
+                  <li>
+                    <button id="blockBtn" class="flex items-center w-full px-4 py-2 hover:bg-[#2a3942]">
+                      <i class="fas fa-ban text-red-500 mr-3"></i> Bloquer
+                    </button>
+                  </li>
+                  <li>
+                    <button id="deleteBtn" class="flex items-center w-full px-4 py-2 hover:bg-[#2a3942]">
+                      <i class="fa-solid fa-trash text-red-500 mr-3"></i> Supprimer définitivement
+                    </button>
+                  </li>
                 </ul>
               </div>
             </div>
           </div>
-          <!-- Section principale WhatsApp -->
-          <div class="flex flex-1">
-            <section class="w-[380px] bg-[#202c33] p-4 border-r border-[#232d35] flex flex-col">
-              <div class="relative mb-4">
-                  <input type="text" 
-                         id="searchContacts"
-                         placeholder="Rechercher ou démarrer une discussion" 
-                         class="w-full px-4 py-3 bg-[#111b21] text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#25d366] placeholder-gray-400"
-                  />
-              </div>
-            <section id="addContactSection" class="bg-[#202c33] p-6 rounded-xl shadow-lg w-full max-w-sm mx-auto my-4 hidden">
-                <h2 class="text-xl font-bold text-[#25d366] mb-4">Ajouter un contact</h2>
-                <form id="addContactForm" class="space-y-4">
-                  <div>
-                    <label class="block text-[#25d366] text-sm font-semibold mb-1" for="contactName">Nom</label>
-                    <input id="contactName" type="text" 
-                      class="w-full px-3 py-2 rounded-lg bg-[#111b21] border border-[#25d366] text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366]"/>
-                  </div>
-                  <div>
-                    <label class="block text-[#25d366] text-sm font-semibold mb-1" for="contactPhone">Numéro</label>
-                    <input id="contactPhone" type="tel" 
-                      class="w-full px-3 py-2 rounded-lg bg-[#111b21] border border-[#25d366] text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366]"/>
-                  </div>
-                  <div>
-                    <label class="block text-[#25d366] text-sm font-semibold mb-1" for="contactAvatar">Avatar (URL, optionnel)</label>
-                    <input id="contactAvatar" type="text"
-                      class="w-full px-3 py-2 rounded-lg bg-[#111b21] border border-[#25d366] text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366]"/>
-                  </div>
-                  <div class="flex justify-end space-x-2 pt-2">
-                    <button type="submit" class="bg-[#25d366] text-white font-bold px-4 py-2 rounded-full hover:bg-[#1ebc59] transition">Ajouter</button>
-                    <button type="button" id="cancelAddContact" class="bg-gray-500 text-white font-bold px-4 py-2 rounded-full hover:bg-gray-700 transition">Annuler</button>
-                  </div>
-                  <div id="addContactError" class="text-red-500 text-sm text-center mt-4"></div>
-                </form>
-            </section>
-              <div class="flex items-center space-x-2 pb-2">
-                <button class="bg-[#25d366] text-white text-xs px-3 py-1 rounded-full font-semibold">Toutes</button>
-                <button class="bg-[#2a3942] text-gray-200 text-xs px-3 py-1 rounded-full">Non lues</button>
-                <button class="bg-[#2a3942] text-gray-200 text-xs px-3 py-1 rounded-full">Favoris</button>
-                <button class="bg-[#2a3942] text-gray-200 text-xs px-3 py-1 rounded-full">Groupes</button>
-              </div>
-              <div id="contactsList" class="mt-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar"></div>
-            </section>
-
-            <main class="flex-1 bg-[#111b21] w-[67%] flex flex-col">
-              <div class="bg-[#202c33] p-4 border-b border-[#232d35] flex justify-between items-center">
-                  <div id="currentContact" class="flex items-center">
-                      <div class="w-12 h-12 bg-[#25d366] rounded-full flex items-center justify-center text-white"></div>
-                      <div class="ml-3">
-                          <h3 class="font-semibold text-white"></h3>
-                          <p class="text-sm text-gray-400"></p>
-                      </div>
-                  </div>
-                  <!-- Menu contextuel pour actions -->
-                  <div class="relative">
-                    <button id="actionsMenuBtn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#2a3942] transition" title="Actions">
-                      <i class="fa-solid fa-ellipsis-v text-[#aebac1] text-xl"></i>
-                    </button>
-                    <!-- Menu dropdown des actions -->
-                    <div id="actionsMenuDropdown" class="hidden absolute right-0 mt-2 w-44 bg-[#232d35] rounded-lg shadow-lg z-30">
-                      <ul class="py-2 text-sm text-gray-200">
-                        <li>
-                          <button id="supprimerBtn" class="flex items-center w-full px-4 py-2 hover:bg-[#2a3942]">
-                            <i class="fa-solid fa-delete-left text-yellow-400 mr-3"></i> Supprimer
-                          </button>
-                        </li>
-                        <li>
-                          <button id="archiveBtn" class="flex items-center w-full px-4 py-2 hover:bg-[#2a3942]">
-                            <i class="fas fa-archive text-[#25d366] mr-3"></i> Archiver
-                          </button>
-                        </li>
-                        <li>
-                          <button id="blockBtn" class="flex items-center w-full px-4 py-2 hover:bg-[#2a3942]">
-                            <i class="fas fa-ban text-red-500 mr-3"></i> Bloquer
-                          </button>
-                        </li>
-                        <li>
-                          <button id="deleteBtn" class="flex items-center w-full px-4 py-2 hover:bg-[#2a3942]">
-                            <i class="fa-solid fa-trash text-red-500 mr-3"></i> Supprimer définitivement
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-              </div>
-              <div id="messagesArea" class="flex-1 p-6 overflow-y-auto custom-scrollbar">
-                  <div id="messagesList" class="space-y-4"></div>
-              </div>
-              <div class="bg-[#202c33] p-4 border-t border-[#232d35] flex items-center space-x-4">
-                  <input type="text" 
-                         id="messageText"
-                         placeholder="Tapez votre message"
-                         class="flex-1 px-4 py-2 bg-[#111b21] text-gray-200 border border-[#232d35] rounded-full focus:outline-none focus:ring-1 focus:ring-[#25d366] placeholder-gray-400"
-                  />
-                  <button id="sendBtn" class="bg-[#25d366] text-white px-4 py-2 rounded-full hover:bg-[#1ebc59]">
-                      <i class="fas fa-arrow-right"></i>
-                  </button>
-              </div>
-            </main>
+          <div id="messagesArea" class="flex-1 p-6 overflow-y-auto custom-scrollbar">
+            <div id="messagesList" class="space-y-4"></div>
           </div>
+                  <div class="bg-[#202c33] p-4 border-t border-[#232d35]">
+          <form id="sendMessageForm" class="flex gap-2 mt-2">
+            <input type="text" id="messageInput" class="flex-1 p-2 rounded" placeholder="Votre message..." autocomplete="off"/>
+            <button type="submit" class="bg-[#25d366] text-white px-4 rounded font-bold">Envoyer</button>
+          </form>
+          <div id="messageError" class="text-red-500 text-sm mt-2"></div>
         </div>
+        </main>
       </div>
     </div>
-    <!-- À placer juste avant la fermeture de </body> dans ton HTML principal -->
+  </div>
+</div>
+
+<!-- PANEL PARAMÈTRES (modale) -->
+<div id="settingsPanel" class="fixed inset-0 z-40 flex bg-black bg-opacity-70 hidden">
+  <div class="bg-[#232d35] w-[400px] h-full p-6 overflow-auto">
+    <div class="flex items-center gap-3 mb-6">
+      <img src="astou.jpeg" class="w-12 h-12 rounded-full object-cover" alt="Profil"/>
+      <div>
+        <div class="font-semibold text-white" id="settingsUsername">Nom Utilisateur</div>
+        <div class="text-xs text-gray-400">Salut ! J'utilise Wax-Tad.</div>
+      </div>
+
+      <button id="closeSettingsPanel" class="ml-auto text-xl text-gray-400 hover:text-white">&times;</button>
+    </div>
+    <input type="text" placeholder="Rechercher dans les paramètres" class="w-full mb-6 rounded bg-[#1a2329] px-3 py-2 text-white" />
+
+    <div class="space-y-4">
+      <div class="text-gray-300">Compte</div>
+      <div class="text-gray-400 text-sm">Notifications de sécurité, informations de compte</div>
+
+      <div class="text-gray-300 mt-4">Confidentialité</div>
+      <div class="text-gray-400 text-sm">Contacts bloqués, messages éphémères</div>
+
+      <div class="text-gray-300 mt-4">Discussions</div>
+      <div class="text-gray-400 text-sm">Thème, fond d'écran, paramètres des discussions</div>
+
+      <div class="text-gray-300 mt-4">Notifications</div>
+      <div class="text-gray-400 text-sm">Notifications de messages</div>
+
+      <div class="text-gray-300 mt-4">Raccourcis clavier</div>
+      <div class="text-gray-400 text-sm">Actions rapides</div>
+
+      <div class="text-gray-300 mt-4">Aide</div>
+      <div class="text-gray-400 text-sm">Pages d'aide, contactez-nous, politique de confidentialité</div>
+
+      <button id="logoutBtn" class="text-red-500 mt-6">Se déconnecter</button>
+    </div>
+  </div>
+  <div class="flex-1" onclick="document.getElementById('settingsPanel').classList.add('hidden')"></div>
+</div>
+
+<!-- PANEL CONTACTS SELECTOR -->
 <section id="contactsSelectorPanel" class="fixed inset-0 bg-[#111b21] bg-opacity-95 z-50 flex flex-col max-w-md w-full h-full left-[75px] border-r border-[#232d35] transition-all duration-200 hidden">
-  <!-- Header -->
   <div class="flex items-center px-4 py-4 border-b border-[#232d35]">
     <button id="closeContactsSelector" class="mr-4 text-[#25d366] text-2xl hover:bg-[#232d35] rounded-full w-10 h-10 flex items-center justify-center transition">
       <i class="fa-solid fa-arrow-left"></i>
     </button>
     <span class="text-lg font-semibold text-white">Nouvelle discussion</span>
   </div>
-  <!-- Recherche -->
   <div class="p-4">
     <input type="text"
            id="searchAllContacts"
@@ -249,15 +286,30 @@
            class="w-full px-4 py-2 bg-[#111b21] border-2 border-[#25d366] rounded-full text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#25d366] placeholder-gray-400"
     />
   </div>
-  <!-- Titre section -->
   <div class="px-4 text-[15px] text-[#25d366] font-semibold mb-2">Contacts sur WhatsApp</div>
-  <!-- Liste des contacts (à remplir dynamiquement) -->
   <div id="allContactsList" class="flex-1 px-2 overflow-y-auto custom-scrollbar space-y-2 pb-4">
-    <!-- Les contacts seront affichés ici en JS -->
   </div>
 </section>
 
-<script type="module" src="./src/main.js"></script>
+<!-- Modal pour créer un groupe -->
+<div id="createGroupModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+  <form id="createGroupForm" class="bg-[#202c33] p-8 rounded-xl shadow-2xl w-80 relative">
+    <button type="button" id="closeGroupModalBtn" class="absolute top-2 right-2 text-gray-400 hover:text-white text-xl">&times;</button>
+    <h2 id="groupModalTitle" class="text-xl text-[#25d366] mb-4">Créer un groupe</h2>
+    <input
+      type="text"
+      id="groupName"
+      class="w-full mb-4 p-2 rounded bg-[#2a3942] text-white"
+      placeholder="Nom du groupe"
+      autocomplete="off"
+    />
+    <div id="groupMembersSelector" class="mb-4 max-h-40 overflow-y-auto bg-[#232d35] rounded p-2">
+    </div>
+    <button type="submit" class="w-full bg-[#25d366] text-white rounded py-2 font-bold">Valider</button>
+    <div id="groupError" class="text-red-500 text-sm mt-2"></div>
+  </form>
+</div>
 
+<script type="module" src="./src/main.js"></script>
 </body>
 </html>

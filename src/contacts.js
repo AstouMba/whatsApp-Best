@@ -1,8 +1,9 @@
 // contacts.js - Gestion des contacts
 
 export class ContactsManager {
-  constructor(apiBaseUrl) {
+  constructor(apiBaseUrl, currentUser) {
     this.API_BASE_URL = apiBaseUrl;
+    this.currentUser = currentUser;
     this.contacts = [];
     this.init();
   }
@@ -80,13 +81,13 @@ export class ContactsManager {
 
   setupMenuButtons() {
     // Autres boutons du menu
-    const btnNewGroup = document.getElementById('btnNewGroup');
-    if (btnNewGroup) {
-      btnNewGroup.addEventListener('click', (e) => {
-        e.preventDefault();
-        alert('Fonction "Nouveau groupe" à compléter.');
-      });
-    }
+    // const btnNewGroup = document.getElementById('btnNewGroup');
+    // if (btnNewGroup) {
+    //   btnNewGroup.addEventListener('click', (e) => {
+    //     e.preventDefault();
+    //     alert('Fonction "Nouveau groupe" à compléter.');
+    //   });
+    // }
 
     const btnArchives = document.getElementById('btnArchives');
     if (btnArchives) {
@@ -99,7 +100,7 @@ export class ContactsManager {
 
   async fetchContacts() {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/contacts`);
+      const response = await fetch(`${this.API_BASE_URL}/contacts?userId=${this.currentUser.id}`);
       const data = await response.json();
       this.contacts = data;
       this.renderContacts();
@@ -129,7 +130,12 @@ export class ContactsManager {
             <div class="text-xs text-gray-400">${contact.phone || ''}</div>
           </div>
         `;
-        contactsList.appendChild(div);
+      div.addEventListener('click', () => {
+  this.selectContact(contact);
+  document.getElementById('contactsSelectorPanel').classList.add('hidden');
+});
+
+      contactsList.appendChild(div);
       });
   }
 
@@ -173,7 +179,7 @@ export class ContactsManager {
       const response = await fetch(`${this.API_BASE_URL}/contacts`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name, phone, avatar })
+        body: JSON.stringify({ name, phone, avatar, userId: this.currentUser.id })
       });
       
       if (!response.ok) throw new Error('Erreur réseau');
