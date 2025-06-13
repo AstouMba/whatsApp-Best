@@ -132,39 +132,32 @@ export class MessagesManager {
   }
 
   createMessageElement(message) {
-    const messageDiv = document.createElement('div');
-    const isOwnMessage = message.fromUserId === this.currentUser.id;
+  const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
 
-    messageDiv.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`;
-    messageDiv.dataset.messageId = message.id;
+  const div = document.createElement('div');
+  div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-2`;
+  div.dataset.messageId = message.id;
 
-    const messageContent = document.createElement('div');
-    messageContent.className = `max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-      isOwnMessage 
-        ? 'bg-[#25d366] text-white' 
-        : 'bg-[#232d35] text-gray-200'
-    }`;
-
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'break-words whitespace-pre-wrap';
-    contentDiv.textContent = message.content;
-
-    const timeDiv = document.createElement('div');
-    timeDiv.className = `text-xs mt-1 flex items-center justify-end gap-1 ${
-      isOwnMessage ? 'text-green-100' : 'text-gray-400'
-    }`;
-
-    const timeText = this.formatMessageTime(message.timestamp);
-    const statusIcon = isOwnMessage ? this.getStatusIcon(message.status) : '';
-
-    timeDiv.innerHTML = `<span>${timeText}</span>${statusIcon}`;
-
-    messageContent.appendChild(contentDiv);
-    messageContent.appendChild(timeDiv);
-    messageDiv.appendChild(messageContent);
-
-    return messageDiv;
-  }
+  div.innerHTML = `
+    <div class="
+      ${isOwnMessage
+        ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md'
+        : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md'
+      }
+      px-4 py-2 max-w-[65%] min-w-[70px] shadow
+      font-medium
+      "
+    >
+      ${message.content}
+      <div class="flex items-center gap-1 text-xs mt-1
+        ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
+        ${message.time || this.formatMessageTime(message.timestamp)}
+        ${isOwnMessage ? '<i class="fa-solid fa-check-double ml-1 text-xs"></i>' : ''}
+      </div>
+    </div>
+  `;
+  return div;
+}
 
   // -------- POLLING --------
 //   startPollingConversation(contactId) {

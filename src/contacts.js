@@ -155,58 +155,38 @@ export class ContactsManager {
       });
   }
 
- async handleAddContact(e) {
-  e.preventDefault();
-  const nameInput = document.getElementById('contactName');
-  const phoneInput = document.getElementById('contactPhone');
-  const avatarInput = document.getElementById('contactAvatar');
-  const errorDiv = document.getElementById('addContactError');
+  async handleAddContact(e) {
+    e.preventDefault();
+    const name = document.getElementById('contactName').value.trim();
+    const phone = document.getElementById('contactPhone').value.trim();
+    const avatar = document.getElementById('contactAvatar').value.trim();
+    const errorDiv = document.getElementById('addContactError');
+    
+    if (!name || !phone) {
+      errorDiv.textContent = "Nom et numéro obligatoires !";
+      return;
+    }
 
-  const name = nameInput.value.trim();
-  const phone = phoneInput.value.trim();
-  const avatar = avatarInput.value.trim();
-
-  if (!name || !phone) {
-    errorDiv.textContent = "Nom et numéro obligatoires !";
-    return;
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/contacts`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ name, phone, avatar, userId: this.currentUser.id })
+      });
+      
+      if (!response.ok) throw new Error('Erreur réseau');
+      
+      document.getElementById('addContactForm').reset();
+      document.getElementById('addContactSection').classList.add('hidden');
+      errorDiv.textContent = "";
+      this.fetchContacts(); // recharge la liste après ajout
+    } catch (err) {
+      errorDiv.textContent = "Erreur lors de l'ajout du contact.";
+      console.error('Erreur lors de l\'ajout du contact:', err);
+    }
   }
 
-  // Vérifier si le numéro existe déjà
-  const phoneExists = this.contacts.some(contact => contact.phone === phone);
-  if (phoneExists) {
-    errorDiv.textContent = "Ce numéro est déjà utilisé.";
-    return;
+  findContactById(id) {
+    return this.contacts.find(c => String(c.id) === String(id));
   }
-
-  // Gestion des doublons de noms
-  let finalName = name;
-  let counter = 1;
-  const lowerName = name.toLowerCase();
-
-  const nameExists = (testName) => 
-    this.contacts.some(contact => contact.name.toLowerCase() === testName.toLowerCase());
-
-  while (nameExists(finalName)) {
-    finalName = `${name}${counter}`;
-    counter++;
-  }
-
-  try {
-    const response = await fetch(`${this.API_BASE_URL}/contacts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: finalName, phone, avatar, userId: this.currentUser.id })
-    });
-
-    if (!response.ok) throw new Error('Erreur réseau');
-
-    document.getElementById('addContactForm').reset();
-    document.getElementById('addContactSection').classList.add('hidden');
-    errorDiv.textContent = "";
-    this.fetchContacts();
-  } catch (err) {
-    errorDiv.textContent = "Erreur lors de l'ajout du contact.";
-    console.error("Erreur lors de l'ajout du contact:", err);
-  }
-}
 }
