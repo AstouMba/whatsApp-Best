@@ -8,13 +8,14 @@ export class MessagesManager {
     this.currentContactId = null;
     this.messages = [];
     this.isTyping = false;
-    this.pollingInterval = null; // Pour le polling
+    this.pollingInterval = null;
 
     this.init();
   }
 
   init() {
     this.setupEventListeners();
+    // Pas de polling global au départ, il ne démarre que sur selectContact !
   }
 
   setupEventListeners() {
@@ -67,7 +68,7 @@ export class MessagesManager {
       await this.sendMessageToServer(message);
       messageInput.value = '';
       messageInput.focus();
-      // Recharge la conversation après l'envoi pour voir le nouveau message (et ceux reçus pendant l'envoi)
+      // On recharge la conversation après l'envoi pour voir le nouveau message (et ceux reçus pendant l'envoi)
       await this.loadConversation(this.currentContactId);
     } catch (error) {
       console.error('Erreur lors de l\'envoi:', error);
@@ -166,19 +167,19 @@ export class MessagesManager {
   }
 
   // -------- POLLING --------
-  startPollingConversation(contactId) {
-    this.stopPollingConversation();
-    this.pollingInterval = setInterval(() => {
-      this.loadConversation(contactId);
-    }, 2000); // toutes les 2 secondes
-  }
+//   startPollingConversation(contactId) {
+//     this.stopPollingConversation();
+//     this.pollingInterval = setInterval(() => {
+//       this.loadConversation(contactId);
+//     }, 2000); // toutes les 2 secondes
+//   }
 
-  stopPollingConversation() {
-    if (this.pollingInterval) {
-      clearInterval(this.pollingInterval);
-      this.pollingInterval = null;
-    }
-  }
+//   stopPollingConversation() {
+//     if (this.pollingInterval) {
+//       clearInterval(this.pollingInterval);
+//       this.pollingInterval = null;
+//     }
+//   }
 
   // Appelle ceci quand tu sélectionnes un contact
   async selectContact(contactId) {
