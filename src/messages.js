@@ -9,6 +9,7 @@ export class MessagesManager {
     this.messages = [];
     this.isTyping = false;
     this.pollingInterval = null;
+    this.lastMessageCount = 0; // Pour détecter les nouveaux messages
 
     this.init();
   }
@@ -132,47 +133,89 @@ export class MessagesManager {
   }
 
   createMessageElement(message) {
-  const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
+    const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
 
-  const div = document.createElement('div');
-  div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-2`;
-  div.dataset.messageId = message.id;
+    const div = document.createElement('div');
+    div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-2`;
+    div.dataset.messageId = message.id;
 
-  div.innerHTML = `
-    <div class="
-      ${isOwnMessage
-        ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md'
-        : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md'
-      }
-      px-4 py-2 max-w-[65%] min-w-[70px] shadow
-      font-medium
-      "
-    >
-      ${message.content}
-      <div class="flex items-center gap-1 text-xs mt-1
-        ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
-        ${message.time || this.formatMessageTime(message.timestamp)}
-        ${isOwnMessage ? '<i class="fa-solid fa-check-double ml-1 text-xs"></i>' : ''}
+    div.innerHTML = `
+      <div class="
+        ${isOwnMessage
+          ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md'
+          : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md'
+        }
+        px-4 py-2 max-w-[65%] min-w-[70px] shadow
+        font-medium
+        "
+      >
+        ${message.content}
+        <div class="flex items-center gap-1 text-xs mt-1
+          ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
+          ${message.time || this.formatMessageTime(message.timestamp)}
+          ${isOwnMessage ? '<i class="fa-solid fa-check-double ml-1 text-xs"></i>' : ''}
+        </div>
       </div>
-    </div>
-  `;
-  return div;
-}
+    `;
+    return div;
+  }
 
   // -------- POLLING --------
-//   startPollingConversation(contactId) {
-//     this.stopPollingConversation();
-//     this.pollingInterval = setInterval(() => {
-//       this.loadConversation(contactId);
-//     }, 2000); // toutes les 2 secondes
-//   }
+  startPollingConversation(contactId) {
+    this.stopPollingConversation();
+    console.log(`Démarrage du polling pour le contact ${contactId}`);
+    this.pollingInterval = setInterval(async () => {
+      await this.checkForNewMessages(contactId);
+    }, 3000); // toutes les 3 secondes
+  }
 
-//   stopPollingConversation() {
-//     if (this.pollingInterval) {
-//       clearInterval(this.pollingInterval);
-//       this.pollingInterval = null;
-//     }
-//   }
+  stopPollingConversation() {
+    if (this.pollingInterval) {
+      console.log('Arrêt du polling');
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
+
+  async checkForNewMessages(contactId) {
+    try {
+      // Récupérer tous les messages de la conversation
+      const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
+      const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
+
+      const [sentResp, receivedResp] = await Promise.all([
+        fetch(urlA),
+        fetch(urlB)
+      ]);
+
+      const sentMessages = await sentResp.json();
+      const receivedMessages = await receivedResp.json();
+
+      const allMessages = [...sentMessages, ...receivedMessages];
+      allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+      // Vérifier s'il y a de nouveaux messages
+      if (allMessages.length > this.lastMessageCount) {
+        console.log(`Nouveaux messages détectés: ${allMessages.length - this.lastMessageCount}`);
+        
+        // Afficher seulement les nouveaux messages
+        const newMessages = allMessages.slice(this.lastMessageCount);
+        newMessages.forEach(message => {
+          // Vérifier que le message n'est pas déjà affiché
+          const messagesList = document.getElementById('messagesList');
+          if (!messagesList.querySelector(`[data-message-id="${message.id}"]`)) {
+            this.displayMessage(message);
+          }
+        });
+
+        this.lastMessageCount = allMessages.length;
+        this.messages = allMessages;
+      }
+
+    } catch (error) {
+      console.error('Erreur lors de la vérification des nouveaux messages:', error);
+    }
+  }
 
   // Appelle ceci quand tu sélectionnes un contact
   async selectContact(contactId) {
@@ -237,8 +280,11 @@ export class MessagesManager {
         this.displayMessage(message);
       });
 
-      // Mets à jour le cache local
+      // Mets à jour le cache local et le compteur
       this.messages = allMessages;
+      this.lastMessageCount = allMessages.length;
+
+      console.log(`Conversation chargée: ${allMessages.length} messages`);
 
     } catch (error) {
       console.error('Erreur lors du chargement de la conversation:', error);
@@ -340,5 +386,13 @@ export class MessagesManager {
 
   setCurrentUser(user) {
     this.currentUser = user;
+  }
+
+  // Méthode pour nettoyer le polling quand on change de contact ou se déconnecte
+  cleanup() {
+    this.stopPollingConversation();
+    this.currentContactId = null;
+    this.messages = [];
+    this.lastMessageCount = 0;
   }
 }

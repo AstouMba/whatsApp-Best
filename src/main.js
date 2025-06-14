@@ -63,6 +63,11 @@ class App {
     });
 
     document.addEventListener('userLoggedOut', () => {
+      // Nettoyer le polling avant de déconnecter
+      if (this.messagesManager) {
+        this.messagesManager.cleanup();
+      }
+
       this.currentUser = null;
       this.contactsManager = null;
       this.groupsManager = null;
@@ -73,6 +78,8 @@ class App {
       if (contactsList) contactsList.innerHTML = "";
       const allContactsList = document.getElementById('allContactsList');
       if (allContactsList) allContactsList.innerHTML = "";
+      const messagesList = document.getElementById('messagesList');
+      if (messagesList) messagesList.innerHTML = "";
     });
   }
 
@@ -100,9 +107,6 @@ class App {
       if (actionsMenuDropdown) actionsMenuDropdown.classList.add('hidden');
     });
   }
-
-  
-  
 
   setupSidebarNav() {
     document.addEventListener('DOMContentLoaded', () => {
@@ -151,6 +155,7 @@ class App {
     }));
   }
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   // Sélectionne les boutons
   const allBtn = document.getElementById('filterAllBtn');
@@ -204,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.app.groupsManager) window.app.groupsManager.renderGroups();
   });
 });
+
 // Gestion du panneau paramètres
 document.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settingsBtn');
