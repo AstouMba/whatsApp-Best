@@ -37,6 +37,21 @@ class App {
     setupContactSelection();
     setupContactMenuActions();
 
+    // Nouvelle logique : si un utilisateur est déjà connecté, on le restaure !
+    const userData = localStorage.getItem('currentUser');
+    if (userData) {
+      // On simule un "userLoggedIn" pour tout initialiser sans repasser par le formulaire
+      const user = JSON.parse(userData);
+      document.dispatchEvent(new CustomEvent('userLoggedIn', { detail: { user } }));
+      // Masquer le formulaire login, afficher l'app principale
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('appContainer').style.display = '';
+    } else {
+      // Aucun utilisateur connecté, on affiche le formulaire login
+      document.getElementById('appContainer').style.display = 'none';
+      document.getElementById('loginPage').style.display = '';
+    }
+
     // Pour debugging
     window.loginManager = this.loginManager;
     window.registerManager = this.registerManager;
@@ -47,6 +62,9 @@ class App {
   setupLoginEventListeners() {
     document.addEventListener('userLoggedIn', (event) => {
       this.currentUser = event.detail.user;
+
+      // Stocker l'utilisateur dans localStorage pour la persistance !
+      localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
 
       this.contactsManager = new ContactsManager(this.API_BASE_URL, this.currentUser);
       this.groupsManager = new GroupsManager(this.API_BASE_URL, this.currentUser, this.contactsManager);
@@ -71,6 +89,9 @@ class App {
         this.messagesManager.cleanup();
       }
 
+      // Supprimer l'utilisateur du localStorage
+      localStorage.removeItem('currentUser');
+
       this.currentUser = null;
       this.contactsManager = null;
       this.groupsManager = null;
@@ -83,6 +104,10 @@ class App {
       if (allContactsList) allContactsList.innerHTML = "";
       const messagesList = document.getElementById('messagesList');
       if (messagesList) messagesList.innerHTML = "";
+
+      // Afficher la page de login, masquer l'app principale
+      document.getElementById('appContainer').style.display = 'none';
+      document.getElementById('loginPage').style.display = '';
     });
   }
 

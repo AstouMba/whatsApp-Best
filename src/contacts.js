@@ -74,15 +74,18 @@ export class ContactsManager {
   }
 
   setupMenuButtons() {
-    const btnArchives = document.getElementById('btnArchives');
-    if (btnArchives) {
-      btnArchives.addEventListener('click', (e) => {
-        e.preventDefault();
-        alert('Fonction "Archives" à compléter.');
-      });
-    }
+  const btnArchives = document.getElementById('btnArchives');
+  if (btnArchives) {
+    btnArchives.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.app && window.app.contactsManager) {
+        window.app.contactsManager.renderArchivedConversations();
+        document.getElementById('groupsList').classList.add('hidden');
+        document.getElementById('contactsList').classList.remove('hidden');
+      }
+    });
   }
-
+}
   async fetchContacts() {
     try {
       const response = await fetch(`${this.API_BASE_URL}/contacts?userId=${this.currentUser.id}`);
@@ -94,7 +97,30 @@ export class ContactsManager {
       console.error('Erreur lors de la récupération des contacts:', error);
     }
   }
-
+async renderArchivedConversations() {
+  const contactsList = document.getElementById('contactsList');
+  if (!contactsList) return;
+  contactsList.innerHTML = '<p>Chargement...</p>';
+  try {
+    const res = await fetch(`${this.apiBaseUrl}/conversations?archived=true`);
+    const archivedConversations = await res.json();
+    contactsList.innerHTML = '';
+    if (archivedConversations.length === 0) {
+      contactsList.innerHTML = '<p>Aucune conversation archivée.</p>';
+    } else {
+      archivedConversations.forEach(conv => {
+        const div = document.createElement('div');
+        div.className = 'contact-item archived';
+        div.setAttribute('data-conv-id', conv.id);
+        // Affiche le nom du contact/groupe (à adapter selon ta structure)
+        div.textContent = conv.name || conv.title || `Conversation ${conv.id}`;
+        contactsList.appendChild(div);
+      });
+    }
+  } catch (e) {
+    contactsList.innerHTML = '<p>Erreur lors du chargement.</p>';
+  }
+}
   renderContacts(filter = "") {
     const contactsList = document.getElementById('contactsList');
     if (!contactsList) return;

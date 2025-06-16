@@ -1,40 +1,38 @@
 // src/contact-actions.js
 
-// Stocke l'id du contact sélectionné dans le DOM (body)
-function setSelectedContactId(contactId) {
+// Stocke l'id du contact sélectionné dans la liste (gauche)
+export function setSelectedContactId(contactId) {
   document.body.setAttribute('data-selected-contact-id', contactId);
 }
-function getSelectedContactId() {
+export function getSelectedContactId() {
   return document.body.getAttribute('data-selected-contact-id');
+}
+
+// Stocke l'id du contact courant de la discussion ouverte (en haut)
+export function setCurrentDiscussionContactId(contactId) {
+  document.body.setAttribute('data-current-discussion-contact-id', contactId);
+}
+export function getCurrentDiscussionContactId() {
+  return document.body.getAttribute('data-current-discussion-contact-id');
 }
 
 // Sélection du contact dans la liste (même après un re-render)
 export function setupContactSelection() {
   const contactsList = document.getElementById('contactsList');
   if (!contactsList) return;
-
   contactsList.addEventListener('click', function(e) {
     const contactDiv = e.target.closest('.contact-item');
     if (contactDiv) {
       setSelectedContactId(contactDiv.getAttribute('data-contact-id'));
-
       // Surlignage visuel (optionnel)
       document.querySelectorAll('.contact-item').forEach(item => item.classList.remove('active'));
       contactDiv.classList.add('active');
-
-      // Affiche le nom du contact sélectionné dans l'en-tête (zone currentContact si besoin)
-      const currentContact = document.getElementById('currentContact');
-      if (currentContact) {
-        const nameElem = currentContact.querySelector('h3');
-        if (nameElem) nameElem.textContent = contactDiv.textContent.trim();
-        // Ici tu peux aussi mettre à jour le numéro ou l'avatar selon tes besoins
-      }
     }
   });
 }
 
 // Affichage d'un message doux (snackbar)
-function showInfoMessage(msg, duration = 3000) {
+export function showInfoMessage(msg, duration = 3000) {
   let snackbar = document.getElementById('snackbar');
   if (!snackbar) {
     snackbar = document.createElement('div');
@@ -62,52 +60,43 @@ function showInfoMessage(msg, duration = 3000) {
   }, duration);
 }
 
-// Actions du menu contextuel
+// Actions du menu contextuel (menu d’actions en haut de la discussion)
 export function setupContactMenuActions(apiBaseUrl = "https://json-server-vzzw.onrender.com") {
   document.getElementById('supprimerBtn')?.addEventListener('click', async () => {
-    const contactId = getSelectedContactId();
-    // DEBUG: log l'id pour vérifier
-    // console.log('supprimerBtn contactId:', contactId);
-
+    const contactId = getCurrentDiscussionContactId();
     if (contactId) {
       await supprimerConversation(contactId, apiBaseUrl);
     } else {
-      showInfoMessage("Sélectionne un contact d'abord !");
+      showInfoMessage("Aucun contact courant !");
     }
   });
 
   document.getElementById('archiveBtn')?.addEventListener('click', async () => {
-    const contactId = getSelectedContactId();
-    // console.log('archiveBtn contactId:', contactId);
-
+    const contactId = getCurrentDiscussionContactId();
     if (contactId) {
       await archiverConversation(contactId, apiBaseUrl);
     } else {
-      showInfoMessage("Sélectionne un contact d'abord !");
+      showInfoMessage("Aucun contact courant !");
     }
   });
 
   document.getElementById('blockBtn')?.addEventListener('click', async () => {
-    const contactId = getSelectedContactId();
-    // console.log('blockBtn contactId:', contactId);
-
+    const contactId = getCurrentDiscussionContactId();
     if (contactId) {
       await bloquerContact(contactId, apiBaseUrl);
     } else {
-      showInfoMessage("Sélectionne un contact d'abord !");
+      showInfoMessage("Aucun contact courant !");
     }
   });
 
   document.getElementById('deleteBtn')?.addEventListener('click', async () => {
-    const contactId = getSelectedContactId();
-    // console.log('deleteBtn contactId:', contactId);
-
+    const contactId = getCurrentDiscussionContactId();
     if (contactId) {
       if (confirm('Supprimer définitivement la conversation ?')) {
         await supprimerDefinitivementConversation(contactId, apiBaseUrl);
       }
     } else {
-      showInfoMessage("Sélectionne un contact d'abord !");
+      showInfoMessage("Aucun contact courant !");
     }
   });
 }
@@ -187,7 +176,7 @@ function removeContactFromList(contactId) {
   if (elem) {
     elem.remove();
   }
-  // Vider la zone de messages si le contact était affiché
+  // Optionnel : vider la zone de messages si le contact était affiché
   const messagesList = document.getElementById('messagesList');
   if (messagesList) messagesList.innerHTML = "";
   const currentContact = document.getElementById('currentContact');
@@ -195,6 +184,7 @@ function removeContactFromList(contactId) {
     currentContact.querySelector('h3').textContent = "";
     currentContact.querySelector('p').textContent = "";
   }
-  // Réinitialise aussi l'attribut sur le body
+  // Réinitialise aussi les attributs sur le body
   document.body.removeAttribute('data-selected-contact-id');
+  document.body.removeAttribute('data-current-discussion-contact-id');
 }

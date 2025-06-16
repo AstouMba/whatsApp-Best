@@ -1,4 +1,5 @@
 // messages.js - Gestion des messages privés avec polling pour quasi temps réel
+import { setCurrentDiscussionContactId } from './contact-actions.js';
 
 export class MessagesManager {
   constructor(apiBaseUrl, currentUser, contactsManager) {
@@ -146,16 +147,16 @@ export class MessagesManager {
   }
 
   createMessageElement(message) {
-    // CORRECTION IMPORTANTE : Vérifier correctement qui a envoyé le message
+    // Vérifier correctement qui a envoyé le message
     const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
 
-    console.log(`Message de ${message.fromUserId}, utilisateur actuel: ${this.currentUser.id}, isOwnMessage: ${isOwnMessage}`);
+    // console.log(`Message de ${message.fromUserId}, utilisateur actuel: ${this.currentUser.id}, isOwnMessage: ${isOwnMessage}`);
 
     const div = document.createElement('div');
     div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
     div.dataset.messageId = message.id;
 
-    // CORRECTION : Couleurs correctes selon l'expéditeur
+    // Couleurs correctes selon l'expéditeur
     const bubbleClass = isOwnMessage 
       ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12' // Messages envoyés : VERT à droite
       : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12'; // Messages reçus : GRIS à gauche
@@ -175,7 +176,7 @@ export class MessagesManager {
 
   // -------- POLLING GLOBAL --------
   startGlobalPolling() {
-    console.log('Démarrage du polling global pour les messages reçus');
+    // console.log('Démarrage du polling global pour les messages reçus');
     setInterval(async () => {
       await this.checkForNewReceivedMessages();
     }, 2000); // Vérifier toutes les 2 secondes
@@ -185,7 +186,7 @@ export class MessagesManager {
     if (!this.currentUser || !this.currentContactId) return;
 
     try {
-      // Récupérer tous les messages reçus par l'utilisateur actuel depuis le contact sélectionné
+      // Récupérer tous les messages reçus de ce contact
       const response = await fetch(`${this.API_BASE_URL}/messages?toUserId=${this.currentUser.id}&fromUserId=${this.currentContactId}`);
       const receivedMessages = await response.json();
 
@@ -195,14 +196,14 @@ export class MessagesManager {
       );
 
       if (newMessages.length > 0) {
-        console.log(`${newMessages.length} nouveau(x) message(s) reçu(s) de ${this.currentContactId}`);
+        // console.log(`${newMessages.length} nouveau(x) message(s) reçu(s) de ${this.currentContactId}`);
         
         // Trier par timestamp
         newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         
         // Afficher les nouveaux messages
         newMessages.forEach(message => {
-          console.log(`Affichage message reçu: ${message.content} de ${message.fromUserId}`);
+          // console.log(`Affichage message reçu: ${message.content} de ${message.fromUserId}`);
           this.displayMessage(message, true);
         });
 
@@ -218,7 +219,7 @@ export class MessagesManager {
   // -------- POLLING CONVERSATION --------
   startPollingConversation(contactId) {
     this.stopPollingConversation();
-    console.log(`Démarrage du polling pour la conversation avec ${contactId}`);
+    // console.log(`Démarrage du polling pour la conversation avec ${contactId}`);
     this.pollingInterval = setInterval(async () => {
       await this.checkConversationMessages(contactId);
     }, 3000);
@@ -226,7 +227,7 @@ export class MessagesManager {
 
   stopPollingConversation() {
     if (this.pollingInterval) {
-      console.log('Arrêt du polling de conversation');
+      // console.log('Arrêt du polling de conversation');
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
     }
@@ -264,8 +265,16 @@ export class MessagesManager {
     }
   }
 
+  /**
+   * Ouvre une discussion avec un contact, affiche les messages,
+   * et stocke l'id du contact courant pour le menu actions.
+   */
   async selectContact(contactId) {
     this.currentContactId = contactId;
+
+    // Important : stocke pour le menu d’actions
+    setCurrentDiscussionContactId(contactId);
+
     this.updateCurrentContactDisplay();
     await this.loadConversation(contactId);
     this.startPollingConversation(contactId);
@@ -326,7 +335,7 @@ export class MessagesManager {
 
       // Afficher tous les messages de la conversation
       allMessages.forEach(message => {
-        console.log(`Chargement message: ${message.content} de ${message.fromUserId} vers ${message.toUserId}`);
+        // console.log(`Chargement message: ${message.content} de ${message.fromUserId} vers ${message.toUserId}`);
         this.displayMessage(message, false);
       });
 
@@ -336,7 +345,7 @@ export class MessagesManager {
       // Faire défiler vers le bas après chargement
       setTimeout(() => this.scrollToBottom(), 100);
 
-      console.log(`Conversation chargée: ${allMessages.length} messages`);
+      // console.log(`Conversation chargée: ${allMessages.length} messages`);
 
     } catch (error) {
       console.error('Erreur lors du chargement de la conversation:', error);
