@@ -67,6 +67,7 @@ export class MessagesManager {
 
     try {
       const message = this.createMessage(content);
+<<<<<<< HEAD
       
       // Afficher immédiatement le message envoyé
       this.displayMessage(message, true);
@@ -78,6 +79,19 @@ export class MessagesManager {
       messageInput.value = '';
       messageInput.focus();
       
+=======
+
+      // Afficher immédiatement le message envoyé
+      this.displayMessage(message, true);
+
+      // Envoyer au serveur
+      await this.sendMessageToServer(message);
+
+      // Vider le champ de saisie
+      messageInput.value = '';
+      messageInput.focus();
+
+>>>>>>> 028233c (032)
     } catch (error) {
       console.error('Erreur lors de l\'envoi:', error);
       this.showError('messageError', 'Erreur lors de l\'envoi du message');
@@ -112,7 +126,11 @@ export class MessagesManager {
 
       const savedMessage = await response.json();
       this.updateMessageStatus(message.id, 'sent');
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> 028233c (032)
       // Ajouter le message sauvegardé à la liste locale
       this.messages.push(savedMessage);
 
@@ -133,7 +151,11 @@ export class MessagesManager {
 
     // Éviter les doublons
     if (this.displayedMessageIds.has(message.id)) return;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 028233c (032)
     this.displayedMessageIds.add(message.id);
 
     const messageElement = this.createMessageElement(message);
@@ -146,17 +168,35 @@ export class MessagesManager {
   }
 
   createMessageElement(message) {
+<<<<<<< HEAD
     // CORRECTION IMPORTANTE : Vérifier correctement qui a envoyé le message
     const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
 
     console.log(`Message de ${message.fromUserId}, utilisateur actuel: ${this.currentUser.id}, isOwnMessage: ${isOwnMessage}`);
 
+=======
+    // Correction : déterminer correctement qui a envoyé le message (propre ou reçu)
+    // Propre message => fromUserId === currentUser.id
+    // Message reçu => toUserId === currentUser.id et fromUserId === currentContactId
+    const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
+
+    // Correction : pour les messages reçus, s'assurer que c'est bien l'utilisateur sélectionné qui est l'expéditeur
+    const isContactMessage = String(message.fromUserId) === String(this.currentContactId);
+
+    // On affiche tous les messages échangés avec ce contact (envoyés et reçus)
+    // Mais côté style, on sépare bien ceux envoyés (droite) et reçus (gauche)
+>>>>>>> 028233c (032)
     const div = document.createElement('div');
     div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
     div.dataset.messageId = message.id;
 
+<<<<<<< HEAD
     // CORRECTION : Couleurs correctes selon l'expéditeur
     const bubbleClass = isOwnMessage 
+=======
+    // Couleurs correctes selon l'expéditeur
+    const bubbleClass = isOwnMessage
+>>>>>>> 028233c (032)
       ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12' // Messages envoyés : VERT à droite
       : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12'; // Messages reçus : GRIS à gauche
 
@@ -185,17 +225,27 @@ export class MessagesManager {
     if (!this.currentUser || !this.currentContactId) return;
 
     try {
+<<<<<<< HEAD
       // Récupérer tous les messages reçus par l'utilisateur actuel depuis le contact sélectionné
       const response = await fetch(`${this.API_BASE_URL}/messages?toUserId=${this.currentUser.id}&fromUserId=${this.currentContactId}`);
       const receivedMessages = await response.json();
 
       // Filtrer les nouveaux messages non encore affichés
       const newMessages = receivedMessages.filter(msg => 
+=======
+      // On récupère les messages reçus du contact sélectionné
+      const response = await fetch(`${this.API_BASE_URL}/messages?fromUserId=${this.currentContactId}&toUserId=${this.currentUser.id}`);
+      const receivedMessages = await response.json();
+
+      // Filtrer les nouveaux messages non encore affichés
+      const newMessages = receivedMessages.filter(msg =>
+>>>>>>> 028233c (032)
         !this.displayedMessageIds.has(msg.id)
       );
 
       if (newMessages.length > 0) {
         console.log(`${newMessages.length} nouveau(x) message(s) reçu(s) de ${this.currentContactId}`);
+<<<<<<< HEAD
         
         // Trier par timestamp
         newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -203,6 +253,14 @@ export class MessagesManager {
         // Afficher les nouveaux messages
         newMessages.forEach(message => {
           console.log(`Affichage message reçu: ${message.content} de ${message.fromUserId}`);
+=======
+
+        // Trier par timestamp
+        newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        // Afficher les nouveaux messages
+        newMessages.forEach(message => {
+>>>>>>> 028233c (032)
           this.displayMessage(message, true);
         });
 
@@ -237,20 +295,35 @@ export class MessagesManager {
       const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
       const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
 
+<<<<<<< HEAD
       const [sentResp, receivedResp] = await Promise.all([
+=======
+      const [receivedResp, sentResp] = await Promise.all([
+>>>>>>> 028233c (032)
         fetch(urlA),
         fetch(urlB)
       ]);
 
+<<<<<<< HEAD
       const sentMessages = await sentResp.json();
       const receivedMessages = await receivedResp.json();
 
       const allMessages = [...sentMessages, ...receivedMessages];
+=======
+      const receivedMessages = await receivedResp.json();
+      const sentMessages = await sentResp.json();
+
+      const allMessages = [...receivedMessages, ...sentMessages];
+>>>>>>> 028233c (032)
       allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
       // Afficher les nouveaux messages de cette conversation
       const newMessages = allMessages.filter(msg => !this.displayedMessageIds.has(msg.id));
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> 028233c (032)
       if (newMessages.length > 0) {
         newMessages.forEach(message => {
           this.displayMessage(message, true);
@@ -313,20 +386,23 @@ export class MessagesManager {
       const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
       const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
 
-      const [sentResp, receivedResp] = await Promise.all([
+      const [receivedResp, sentResp] = await Promise.all([
         fetch(urlA),
         fetch(urlB)
       ]);
 
-      const sentMessages = await sentResp.json();
       const receivedMessages = await receivedResp.json();
+      const sentMessages = await sentResp.json();
 
-      const allMessages = [...sentMessages, ...receivedMessages];
+      const allMessages = [...receivedMessages, ...sentMessages];
       allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
       // Afficher tous les messages de la conversation
       allMessages.forEach(message => {
+<<<<<<< HEAD
         console.log(`Chargement message: ${message.content} de ${message.fromUserId} vers ${message.toUserId}`);
+=======
+>>>>>>> 028233c (032)
         this.displayMessage(message, false);
       });
 
@@ -347,7 +423,11 @@ export class MessagesManager {
     const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
     if (!messageElement) return;
 
+<<<<<<< HEAD
     const statusIcon = messageElement.querySelector('.fa-check-double');
+=======
+    const statusIcon = messageElement.querySelector('.fa-check-double, .fa-check, .fa-clock, .fa-exclamation-triangle');
+>>>>>>> 028233c (032)
     if (statusIcon) {
       statusIcon.className = this.getStatusIconClass(newStatus);
     }
@@ -380,16 +460,16 @@ export class MessagesManager {
     const messageDate = new Date(timestamp);
 
     if (now.toDateString() === messageDate.toDateString()) {
-      return messageDate.toLocaleTimeString('fr-FR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return messageDate.toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } else if (now.getTime() - messageDate.getTime() < 7 * 24 * 60 * 60 * 1000) {
-      return messageDate.toLocaleDateString('fr-FR', { 
+      return messageDate.toLocaleDateString('fr-FR', {
         weekday: 'short'
       });
     } else {
-      return messageDate.toLocaleDateString('fr-FR', { 
+      return messageDate.toLocaleDateString('fr-FR', {
         day: '2-digit',
         month: '2-digit'
       });

@@ -3,6 +3,7 @@ import { LoginManager } from './login.js';
 import { ContactsManager } from './contacts.js';
 import { GroupsManager } from './groupes.js';
 import { MessagesManager } from './messages.js';
+import { setupContactSelection, setupContactMenuActions } from './contact-actions.js';
 
 class App {
   constructor() {
@@ -33,6 +34,8 @@ class App {
     this.registerManager = new RegisterManager(this.API_BASE_URL);
 
     this.setupLoginEventListeners();
+    setupContactSelection();
+    setupContactMenuActions();
 
     // Pour debugging
     window.loginManager = this.loginManager;

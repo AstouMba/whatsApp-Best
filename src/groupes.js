@@ -74,13 +74,21 @@ export class GroupsManager {
     // Suppose que tu as un <div id="groupMembersSelector"></div> dans la modale
     const container = document.getElementById('groupMembersSelector');
     if (!container || !this.contactsManager) return;
-    const contacts = this.contactsManager.contacts || [];
+    let contacts = this.contactsManager.contacts || [];
+
+    // Ajoute l'utilisateur courant si absent (pour garantir que l'admin soit sélectionnable)
+    if (!contacts.some(c => String(c.id) === String(this.currentUser.id))) {
+      contacts = [
+        ...contacts,
+        { id: this.currentUser.id, name: this.currentUser.username, phone: this.currentUser.phone || '' }
+      ];
+    }
     container.innerHTML = "";
 
     // Sélectionner les membres (checkbox)
     contacts.forEach(contact => {
-      const isAdmin = adminId ? contact.id === adminId : contact.id === this.currentUser.id;
-      const checked = selectedIds.includes(contact.id) || isAdmin;
+      const isAdmin = adminId ? String(contact.id) === String(adminId) : String(contact.id) === String(this.currentUser.id);
+      const checked = selectedIds.map(String).includes(String(contact.id)) || isAdmin;
       const disabled = isAdmin;
       const div = document.createElement('div');
       div.className = "flex items-center gap-2 mb-2";
@@ -99,21 +107,20 @@ export class GroupsManager {
     const modal = document.getElementById('createGroupModal');
     errorDiv.textContent = "";
 
-    // Récupérer membres sélectionnés (toujours inclure l'admin/créateur)
     const checkboxes = document.querySelectorAll('.group-member-checkbox');
     let memberIds = Array.from(checkboxes)
       .filter(cb => cb.checked)
-      .map(cb => cb.value);
+      .map(cb => String(cb.value));
 
-    // S'assurer que l'admin est dans la liste
     let adminId = this.selectedGroup && this.selectedGroup.adminId
-      ? this.selectedGroup.adminId
-      : this.currentUser.id;
-    if (!memberIds.includes(String(adminId))) {
-      memberIds.unshift(String(adminId));
+      ? String(this.selectedGroup.adminId)
+      : String(this.currentUser.id);
+
+    // Toujours inclure l'admin dans les membres (et en type string)
+    if (!memberIds.includes(adminId)) {
+      memberIds.unshift(adminId);
     }
 
-    // Validation
     if (!name) {
       errorDiv.textContent = "Le nom du groupe est obligatoire.";
       return;
@@ -125,10 +132,8 @@ export class GroupsManager {
 
     try {
       if (this.selectedGroup) {
-        // Edition du groupe
         await this.editGroup(this.selectedGroup.id, { name, members: memberIds });
       } else {
-        // Création
         await this.createGroup({
           name,
           createdAt: new Date().toISOString(),
@@ -140,7 +145,7 @@ export class GroupsManager {
       document.getElementById('createGroupForm').reset();
       document.dispatchEvent(new Event('groupModified'));
     } catch (err) {
-      errorDiv.textContent = "Erreur lors de l'enregistrement du groupe.";
+      errorDiv.textContent = err.message || "Erreur lors de l'enregistrement du groupe.";
     }
   }
 
@@ -150,7 +155,14 @@ export class GroupsManager {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(groupData)
     });
-    if (!response.ok) throw new Error();
+    if (!response.ok) {
+      let msg = "Erreur lors de l'enregistrement du groupe.";
+      try {
+        const data = await response.json();
+        if (data && data.message) msg = data.message;
+      } catch {}
+      throw new Error(msg);
+    }
     return await response.json();
   }
 
@@ -160,7 +172,14 @@ export class GroupsManager {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
     });
-    if (!response.ok) throw new Error();
+    if (!response.ok) {
+      let msg = "Erreur lors de la modification du groupe.";
+      try {
+        const dataRes = await response.json();
+        if (dataRes && dataRes.message) msg = dataRes.message;
+      } catch {}
+      throw new Error(msg);
+    }
     return await response.json();
   }
 
@@ -206,10 +225,17 @@ export class GroupsManager {
     // Pour l'exemple, tu peux remplacer ce alert par une vraie modale d'info
     let msg = `Groupe : ${group.name}\n\nMembres:\n`;
     if (!this.contactsManager) return;
-    const contacts = this.contactsManager.contacts || [];
+    let contacts = this.contactsManager.contacts || [];
+    // Ajoute l'utilisateur courant si absent (pour garantir affichage admin même s'il n'est pas dans contacts)
+    if (!contacts.some(c => String(c.id) === String(this.currentUser.id))) {
+      contacts = [
+        ...contacts,
+        { id: this.currentUser.id, name: this.currentUser.username, phone: this.currentUser.phone || '' }
+      ];
+    }
     group.members.forEach(id => {
       const user = contacts.find(c => String(c.id) === String(id)) || { name: 'Inconnu', phone: '' };
-      msg += `- ${user.name} (${user.phone})${id == group.adminId ? " (admin)" : ""}\n`;
+      msg += `- ${user.name} (${user.phone})${String(id) === String(group.adminId) ? " (admin)" : ""}\n`;
     });
     alert(msg);
     // Pour aller plus loin, affiche une modale pour renommer, ajouter/retirer des membres, etc.
@@ -217,10 +243,10 @@ export class GroupsManager {
 
   // Ajoute un membre (si admin)
   async addMemberToGroup(groupId, userId) {
-    const group = this.groups.find(g => g.id == groupId);
+    const group = this.groups.find(g => String(g.id) === String(groupId));
     if (!group) return;
     if (!group.members.includes(userId)) {
-      const members = Array.from(new Set([...group.members, userId]));
+      const members = Array.from(new Set([...group.members, userId].map(String)));
       await this.editGroup(groupId, { members });
       this.fetchGroups();
     }
@@ -228,10 +254,10 @@ export class GroupsManager {
 
   // Retire un membre (si admin, sauf admin lui-même)
   async removeMemberFromGroup(groupId, userId) {
-    const group = this.groups.find(g => g.id == groupId);
+    const group = this.groups.find(g => String(g.id) === String(groupId));
     if (!group) return;
-    if (userId == group.adminId) return alert("Impossible de retirer l'admin.");
-    const members = group.members.filter(id => id !== userId);
+    if (String(userId) === String(group.adminId)) return alert("Impossible de retirer l'admin.");
+    const members = group.members.filter(id => String(id) !== String(userId));
     await this.editGroup(groupId, { members });
     this.fetchGroups();
   }
