@@ -150,7 +150,7 @@ export class GroupsManager {
   }
 
   async createGroup(groupData) {
-    const response = await fetch(`${this.API_BASE_URL}/groups`, {
+    const response = await fetch(`${this.API_BASE_URL}/groupes`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(groupData)
@@ -167,7 +167,7 @@ export class GroupsManager {
   }
 
   async editGroup(id, data) {
-    const response = await fetch(`${this.API_BASE_URL}/groups/${id}`, {
+    const response = await fetch(`${this.API_BASE_URL}/groupes/${id}`, {
       method: 'PATCH',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data)
@@ -185,7 +185,7 @@ export class GroupsManager {
 
   async fetchGroups() {
     try {
-      const res = await fetch(`${this.API_BASE_URL}/groups`);
+      const res = await fetch(`${this.API_BASE_URL}/groupes`);
       this.groups = await res.json();
       this.renderGroups();
     } catch (err) {
