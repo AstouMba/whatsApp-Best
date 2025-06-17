@@ -1,4 +1,4 @@
-// messages.js - Gestion des messages privés avec polling pour quasi temps réel
+// messages.js - Gestion des messages privés avec auto-switch vers conversation
 import { setCurrentDiscussionContactId } from './contact-actions.js';
 
 export class MessagesManager {
@@ -10,15 +10,14 @@ export class MessagesManager {
     this.messages = [];
     this.isTyping = false;
     this.pollingInterval = null;
-    this.lastMessageCount = 0; // Pour détecter les nouveaux messages
-    this.displayedMessageIds = new Set(); // Pour éviter les doublons
+    this.lastMessageCount = 0;
+    this.displayedMessageIds = new Set();
 
     this.init();
   }
 
   init() {
     this.setupEventListeners();
-    // Démarrer un polling global pour tous les messages reçus
     this.startGlobalPolling();
   }
 
@@ -69,6 +68,9 @@ export class MessagesManager {
     try {
       const message = this.createMessage(content);
       
+      // NOUVEAU : Basculer automatiquement vers la conversation
+      this.switchToConversationView();
+      
       // Afficher immédiatement le message envoyé
       this.displayMessage(message, true);
       
@@ -114,7 +116,6 @@ export class MessagesManager {
       const savedMessage = await response.json();
       this.updateMessageStatus(message.id, 'sent');
       
-      // Ajouter le message sauvegardé à la liste locale
       this.messages.push(savedMessage);
 
       setTimeout(() => {
@@ -132,7 +133,6 @@ export class MessagesManager {
     const messagesList = document.getElementById('messagesList');
     if (!messagesList) return;
 
-    // Éviter les doublons
     if (this.displayedMessageIds.has(message.id)) return;
     
     this.displayedMessageIds.add(message.id);
@@ -140,26 +140,21 @@ export class MessagesManager {
     const messageElement = this.createMessageElement(message);
     messagesList.appendChild(messageElement);
 
-    // Faire défiler vers le bas seulement pour les nouveaux messages
     if (isNewMessage) {
       this.scrollToBottom();
     }
   }
 
   createMessageElement(message) {
-    // Vérifier correctement qui a envoyé le message
     const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
-
-    // console.log(`Message de ${message.fromUserId}, utilisateur actuel: ${this.currentUser.id}, isOwnMessage: ${isOwnMessage}`);
 
     const div = document.createElement('div');
     div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
     div.dataset.messageId = message.id;
 
-    // Couleurs correctes selon l'expéditeur
     const bubbleClass = isOwnMessage 
-      ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12' // Messages envoyés : VERT à droite
-      : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12'; // Messages reçus : GRIS à gauche
+      ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12'
+      : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12';
 
     div.innerHTML = `
       <div class="${bubbleClass} px-4 py-2 max-w-[70%] min-w-[100px] shadow-md">
@@ -176,39 +171,54 @@ export class MessagesManager {
 
   // -------- POLLING GLOBAL --------
   startGlobalPolling() {
-    // console.log('Démarrage du polling global pour les messages reçus');
     setInterval(async () => {
       await this.checkForNewReceivedMessages();
-    }, 2000); // Vérifier toutes les 2 secondes
+    }, 2000);
   }
 
   async checkForNewReceivedMessages() {
-    if (!this.currentUser || !this.currentContactId) return;
+    if (!this.currentUser) return;
 
     try {
-      // Récupérer tous les messages reçus de ce contact
-      const response = await fetch(`${this.API_BASE_URL}/messages?toUserId=${this.currentUser.id}&fromUserId=${this.currentContactId}`);
-      const receivedMessages = await response.json();
+      // Récupérer tous les messages reçus récents
+      const response = await fetch(`${this.API_BASE_URL}/messages?toUserId=${this.currentUser.id}`);
+      const allReceivedMessages = await response.json();
 
-      // Filtrer les nouveaux messages non encore affichés
-      const newMessages = receivedMessages.filter(msg => 
-        !this.displayedMessageIds.has(msg.id)
-      );
+      // Grouper par expéditeur pour détecter les nouveaux messages
+      const messagesByContact = {};
+      allReceivedMessages.forEach(msg => {
+        if (!messagesByContact[msg.fromUserId]) {
+          messagesByContact[msg.fromUserId] = [];
+        }
+        messagesByContact[msg.fromUserId].push(msg);
+      });
 
-      if (newMessages.length > 0) {
-        // console.log(`${newMessages.length} nouveau(x) message(s) reçu(s) de ${this.currentContactId}`);
-        
-        // Trier par timestamp
-        newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        
-        // Afficher les nouveaux messages
-        newMessages.forEach(message => {
-          // console.log(`Affichage message reçu: ${message.content} de ${message.fromUserId}`);
-          this.displayMessage(message, true);
-        });
+      // Vérifier chaque contact pour des nouveaux messages
+      for (const [contactId, messages] of Object.entries(messagesByContact)) {
+        const newMessages = messages.filter(msg => 
+          !this.displayedMessageIds.has(msg.id)
+        );
 
-        // Mettre à jour la liste locale
-        this.messages.push(...newMessages);
+        if (newMessages.length > 0) {
+          // NOUVEAU : Si on reçoit un message, basculer automatiquement vers cette conversation
+          if (this.currentContactId !== contactId) {
+            console.log(`Nouveau message reçu de ${contactId}, basculement automatique`);
+            await this.selectContact(contactId);
+          }
+
+          // Trier par timestamp
+          newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+          
+          // Afficher les nouveaux messages
+          newMessages.forEach(message => {
+            this.displayMessage(message, true);
+          });
+
+          // Basculer vers la vue conversation
+          this.switchToConversationView();
+
+          this.messages.push(...newMessages);
+        }
       }
 
     } catch (error) {
@@ -216,10 +226,68 @@ export class MessagesManager {
     }
   }
 
+  // -------- NOUVELLE MÉTHODE : BASCULER VERS LA VUE CONVERSATION --------
+  switchToConversationView() {
+    // Masquer la vue "Commencer une conversation"
+    const startConversationView = document.getElementById('startConversationView');
+    if (startConversationView) {
+      startConversationView.style.display = 'none';
+    }
+
+    // Afficher la vue de conversation
+    const conversationView = document.getElementById('conversationView');
+    if (conversationView) {
+      conversationView.style.display = 'flex';
+    }
+
+    // Masquer le placeholder "Sélectionner un contact"
+    const noContactSelected = document.getElementById('noContactSelected');
+    if (noContactSelected) {
+      noContactSelected.style.display = 'none';
+    }
+
+    // Afficher la zone de messages
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (messagesContainer) {
+      messagesContainer.style.display = 'flex';
+    }
+
+    // S'assurer que la zone de saisie est visible
+    const messageInputContainer = document.getElementById('messageInputContainer');
+    if (messageInputContainer) {
+      messageInputContainer.style.display = 'flex';
+    }
+  }
+
+  // -------- MÉTHODE UTILITAIRE : RETOUR À LA VUE INITIALE --------
+  switchToStartConversationView() {
+    // Afficher la vue "Commencer une conversation"
+    const startConversationView = document.getElementById('startConversationView');
+    if (startConversationView) {
+      startConversationView.style.display = 'flex';
+    }
+
+    // Masquer la vue de conversation
+    const conversationView = document.getElementById('conversationView');
+    if (conversationView) {
+      conversationView.style.display = 'none';
+    }
+
+    // Réinitialiser l'état
+    this.currentContactId = null;
+    this.stopPollingConversation();
+    
+    // Vider l'affichage des messages
+    const messagesList = document.getElementById('messagesList');
+    if (messagesList) {
+      messagesList.innerHTML = '';
+      this.displayedMessageIds.clear();
+    }
+  }
+
   // -------- POLLING CONVERSATION --------
   startPollingConversation(contactId) {
     this.stopPollingConversation();
-    // console.log(`Démarrage du polling pour la conversation avec ${contactId}`);
     this.pollingInterval = setInterval(async () => {
       await this.checkConversationMessages(contactId);
     }, 3000);
@@ -227,7 +295,6 @@ export class MessagesManager {
 
   stopPollingConversation() {
     if (this.pollingInterval) {
-      // console.log('Arrêt du polling de conversation');
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
     }
@@ -249,7 +316,6 @@ export class MessagesManager {
       const allMessages = [...sentMessages, ...receivedMessages];
       allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-      // Afficher les nouveaux messages de cette conversation
       const newMessages = allMessages.filter(msg => !this.displayedMessageIds.has(msg.id));
       
       if (newMessages.length > 0) {
@@ -265,15 +331,12 @@ export class MessagesManager {
     }
   }
 
-  /**
-   * Ouvre une discussion avec un contact, affiche les messages,
-   * et stocke l'id du contact courant pour le menu actions.
-   */
   async selectContact(contactId) {
     this.currentContactId = contactId;
-
-    // Important : stocke pour le menu d’actions
     setCurrentDiscussionContactId(contactId);
+
+    // NOUVEAU : Basculer automatiquement vers la vue conversation
+    this.switchToConversationView();
 
     this.updateCurrentContactDisplay();
     await this.loadConversation(contactId);
@@ -312,7 +375,6 @@ export class MessagesManager {
 
   async loadConversation(contactId) {
     try {
-      // Réinitialiser l'affichage
       const messagesList = document.getElementById('messagesList');
       if (messagesList) {
         messagesList.innerHTML = '';
@@ -333,19 +395,14 @@ export class MessagesManager {
       const allMessages = [...receivedMessages, ...sentMessages];
       allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-      // Afficher tous les messages de la conversation
       allMessages.forEach(message => {
-        // console.log(`Chargement message: ${message.content} de ${message.fromUserId} vers ${message.toUserId}`);
         this.displayMessage(message, false);
       });
 
       this.messages = allMessages;
       this.lastMessageCount = allMessages.length;
 
-      // Faire défiler vers le bas après chargement
       setTimeout(() => this.scrollToBottom(), 100);
-
-      // console.log(`Conversation chargée: ${allMessages.length} messages`);
 
     } catch (error) {
       console.error('Erreur lors du chargement de la conversation:', error);
