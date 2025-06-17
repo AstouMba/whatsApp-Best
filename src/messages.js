@@ -167,8 +167,12 @@ export class MessagesManager {
   }
 
   createMessageElement(message) {
-    // ✅ CORRECTION : Utiliser fromUserId au lieu de from
+    // ✅ CORRECTION CRITIQUE : Vérifier qui a envoyé le message
     const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
+    
+    console.log('Message:', message);
+    console.log('fromUserId:', message.fromUserId, 'currentUser.id:', this.currentUser.id);
+    console.log('isOwnMessage:', isOwnMessage);
 
     const div = document.createElement('div');
     div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
