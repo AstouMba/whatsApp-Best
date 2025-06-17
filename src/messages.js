@@ -1,5 +1,4 @@
-// messages.js - Gestion des messages privés avec auto-switch vers conversation et couleur reçue/envoi
-
+// messages.js - Gestion des messages privés avec auto-switch vers conversation
 import { setCurrentDiscussionContactId } from './contact-actions.js';
 
 export class MessagesManager {
@@ -68,20 +67,20 @@ export class MessagesManager {
 
     try {
       const message = this.createMessage(content);
-
-      // Basculer automatiquement vers la conversation
+      
+      // NOUVEAU : Basculer automatiquement vers la conversation
       this.switchToConversationView();
-
+      
       // Afficher immédiatement le message envoyé
       this.displayMessage(message, true);
-
+      
       // Envoyer au serveur
       await this.sendMessageToServer(message);
-
+      
       // Vider le champ de saisie
       messageInput.value = '';
       messageInput.focus();
-
+      
     } catch (error) {
       console.error('Erreur lors de l\'envoi:', error);
       this.showError('messageError', 'Erreur lors de l\'envoi du message');
@@ -91,9 +90,9 @@ export class MessagesManager {
   createMessage(content, type = 'text') {
     return {
       id: this.generateMessageId(),
-      from: this.currentUser.id,
-      to: this.currentContactId,
-      text: content,
+      fromUserId: this.currentUser.id,
+      toUserId: this.currentContactId,
+      content: content,
       type: type,
       timestamp: new Date().toISOString(),
       status: 'sending'
@@ -116,7 +115,7 @@ export class MessagesManager {
 
       const savedMessage = await response.json();
       this.updateMessageStatus(message.id, 'sent');
-
+      
       this.messages.push(savedMessage);
 
       setTimeout(() => {
@@ -135,7 +134,7 @@ export class MessagesManager {
     if (!messagesList) return;
 
     if (this.displayedMessageIds.has(message.id)) return;
-
+    
     this.displayedMessageIds.add(message.id);
 
     const messageElement = this.createMessageElement(message);
@@ -147,24 +146,19 @@ export class MessagesManager {
   }
 
   createMessageElement(message) {
-    // Compatibilité : from ou fromUserId selon la source
-    const myId = String(this.currentUser.id);
-    const isOwnMessage =
-      String(message.from) === myId ||
-      String(message.fromUserId) === myId;
+    const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
 
-    // vert pour envoyé, gris pour reçu
     const div = document.createElement('div');
     div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
     div.dataset.messageId = message.id;
 
-    const bubbleClass = isOwnMessage
+    const bubbleClass = isOwnMessage 
       ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12'
       : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12';
 
     div.innerHTML = `
       <div class="${bubbleClass} px-4 py-2 max-w-[70%] min-w-[100px] shadow-md">
-        <div class="text-sm leading-relaxed">${message.text || message.content}</div>
+        <div class="text-sm leading-relaxed">${message.content}</div>
         <div class="flex items-center gap-1 text-xs mt-1 opacity-70
           ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
           <span>${this.formatMessageTime(message.timestamp)}</span>
@@ -187,35 +181,34 @@ export class MessagesManager {
 
     try {
       // Récupérer tous les messages reçus récents
-      const response = await fetch(`${this.API_BASE_URL}/messages?to=${this.currentUser.id}`);
+      const response = await fetch(`${this.API_BASE_URL}/messages?toUserId=${this.currentUser.id}`);
       const allReceivedMessages = await response.json();
 
       // Grouper par expéditeur pour détecter les nouveaux messages
       const messagesByContact = {};
       allReceivedMessages.forEach(msg => {
-        const contactId = msg.from || msg.fromUserId;
-        if (!messagesByContact[contactId]) {
-          messagesByContact[contactId] = [];
+        if (!messagesByContact[msg.fromUserId]) {
+          messagesByContact[msg.fromUserId] = [];
         }
-        messagesByContact[contactId].push(msg);
+        messagesByContact[msg.fromUserId].push(msg);
       });
 
       // Vérifier chaque contact pour des nouveaux messages
       for (const [contactId, messages] of Object.entries(messagesByContact)) {
-        const newMessages = messages.filter(msg =>
+        const newMessages = messages.filter(msg => 
           !this.displayedMessageIds.has(msg.id)
         );
 
         if (newMessages.length > 0) {
-          // Bascule automatiquement vers cette conversation si pas déjà dessus
-          if (String(this.currentContactId) !== String(contactId)) {
+          // NOUVEAU : Si on reçoit un message, basculer automatiquement vers cette conversation
+          if (this.currentContactId !== contactId) {
             console.log(`Nouveau message reçu de ${contactId}, basculement automatique`);
             await this.selectContact(contactId);
           }
 
           // Trier par timestamp
           newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
+          
           // Afficher les nouveaux messages
           newMessages.forEach(message => {
             this.displayMessage(message, true);
@@ -283,7 +276,7 @@ export class MessagesManager {
     // Réinitialiser l'état
     this.currentContactId = null;
     this.stopPollingConversation();
-
+    
     // Vider l'affichage des messages
     const messagesList = document.getElementById('messagesList');
     if (messagesList) {
@@ -297,7 +290,7 @@ export class MessagesManager {
     this.stopPollingConversation();
     this.pollingInterval = setInterval(async () => {
       await this.checkConversationMessages(contactId);
-    }, 2000); // 2s pour temps réel, peut être ajusté
+    }, 3000);
   }
 
   stopPollingConversation() {
@@ -309,23 +302,22 @@ export class MessagesManager {
 
   async checkConversationMessages(contactId) {
     try {
-      // Récupère tous les messages entre les deux utilisateurs (envoyés ET reçus)
-      const urlA = `${this.API_BASE_URL}/messages?from=${contactId}&to=${this.currentUser.id}`;
-      const urlB = `${this.API_BASE_URL}/messages?from=${this.currentUser.id}&to=${contactId}`;
+      const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
+      const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
 
-      const [receivedResp, sentResp] = await Promise.all([
+      const [sentResp, receivedResp] = await Promise.all([
         fetch(urlA),
         fetch(urlB)
       ]);
 
-      const receivedMessages = await receivedResp.json();
       const sentMessages = await sentResp.json();
+      const receivedMessages = await receivedResp.json();
 
-      const allMessages = [...receivedMessages, ...sentMessages];
+      const allMessages = [...sentMessages, ...receivedMessages];
       allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
       const newMessages = allMessages.filter(msg => !this.displayedMessageIds.has(msg.id));
-
+      
       if (newMessages.length > 0) {
         newMessages.forEach(message => {
           this.displayMessage(message, true);
@@ -343,7 +335,7 @@ export class MessagesManager {
     this.currentContactId = contactId;
     setCurrentDiscussionContactId(contactId);
 
-    // Basculer automatiquement vers la vue conversation
+    // NOUVEAU : Basculer automatiquement vers la vue conversation
     this.switchToConversationView();
 
     this.updateCurrentContactDisplay();
@@ -389,8 +381,8 @@ export class MessagesManager {
         this.displayedMessageIds.clear();
       }
 
-      const urlA = `${this.API_BASE_URL}/messages?from=${contactId}&to=${this.currentUser.id}`;
-      const urlB = `${this.API_BASE_URL}/messages?from=${this.currentUser.id}&to=${contactId}`;
+      const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
+      const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
 
       const [receivedResp, sentResp] = await Promise.all([
         fetch(urlA),
