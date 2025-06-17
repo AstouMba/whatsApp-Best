@@ -116,16 +116,37 @@ export class MessagesManager {
       const savedMessage = await response.json();
       this.updateMessageStatus(message.id, 'sent');
       
-      this.messages.push(savedMessage);
+      // Remplacer le message temporaire par le message du serveur
+      this.replaceTemporaryMessage(message.id, savedMessage);
 
       setTimeout(() => {
-        this.updateMessageStatus(message.id, 'delivered');
+        this.updateMessageStatus(savedMessage.id, 'delivered');
       }, 1000);
 
     } catch (error) {
       console.error('Erreur envoi serveur:', error);
       this.updateMessageStatus(message.id, 'failed');
       throw error;
+    }
+  }
+
+  replaceTemporaryMessage(tempId, serverMessage) {
+    // Remplacer dans le tableau des messages
+    const index = this.messages.findIndex(m => m.id === tempId);
+    if (index !== -1) {
+      this.messages[index] = serverMessage;
+    } else {
+      this.messages.push(serverMessage);
+    }
+
+    // Mettre à jour l'ID affiché
+    this.displayedMessageIds.delete(tempId);
+    this.displayedMessageIds.add(serverMessage.id);
+
+    // Mettre à jour l'élément DOM
+    const messageElement = document.querySelector(`[data-message-id="${tempId}"]`);
+    if (messageElement) {
+      messageElement.setAttribute('data-message-id', serverMessage.id);
     }
   }
 
@@ -145,31 +166,32 @@ export class MessagesManager {
     }
   }
 
- createMessageElement(message) {
-  const isOwnMessage = String(message.from) === String(this.currentUser.id);
+  createMessageElement(message) {
+    // ✅ CORRECTION : Utiliser fromUserId au lieu de from
+    const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
 
-  const div = document.createElement('div');
-  div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
-  div.dataset.messageId = message.id;
+    const div = document.createElement('div');
+    div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
+    div.dataset.messageId = message.id;
 
-  const bubbleClass = isOwnMessage
-    ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12'
-    : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12';
+    const bubbleClass = isOwnMessage
+      ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12'
+      : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12';
 
-  div.innerHTML = `
-    <div class="${bubbleClass} px-4 py-2 max-w-[70%] min-w-[100px] shadow-md">
-      <div class="text-sm leading-relaxed">${message.text || message.content}</div>
-      <div class="flex items-center gap-1 text-xs mt-1 opacity-70
-        ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
-        <span>${this.formatMessageTime(message.timestamp)}</span>
-        ${isOwnMessage ? '<i class="fa-solid fa-check-double ml-1 text-xs"></i>' : ''}
+    div.innerHTML = `
+      <div class="${bubbleClass} px-4 py-2 max-w-[70%] min-w-[100px] shadow-md">
+        <div class="text-sm leading-relaxed">${message.content}</div>
+        <div class="flex items-center gap-1 text-xs mt-1 opacity-70
+          ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
+          <span>${this.formatMessageTime(message.timestamp)}</span>
+          ${isOwnMessage ? '<i class="fa-solid fa-check-double ml-1 text-xs"></i>' : ''}
+        </div>
       </div>
-    </div>
-  `;
-  return div;
-}
+    `;
+    return div;
+  }
 
-  // -------- POLLING GLOBAL --------
+  // -------- POLLING GLOBAL AMÉLIORÉ --------
   startGlobalPolling() {
     setInterval(async () => {
       await this.checkForNewReceivedMessages();
@@ -181,44 +203,37 @@ export class MessagesManager {
 
     try {
       // Récupérer tous les messages reçus récents
-      const response = await fetch(`${this.API_BASE_URL}/messages?toUserId=${this.currentUser.id}`);
+      const response = await fetch(`${this.API_BASE_URL}/messages?toUserId=${this.currentUser.id}&_sort=timestamp&_order=desc`);
       const allReceivedMessages = await response.json();
 
-      // Grouper par expéditeur pour détecter les nouveaux messages
-      const messagesByContact = {};
-      allReceivedMessages.forEach(msg => {
-        if (!messagesByContact[msg.fromUserId]) {
-          messagesByContact[msg.fromUserId] = [];
+      // Filtrer les nouveaux messages non affichés
+      const newMessages = allReceivedMessages.filter(msg => 
+        !this.displayedMessageIds.has(msg.id)
+      );
+
+      if (newMessages.length > 0) {
+        // Trier par timestamp croissant pour affichage chronologique
+        newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        
+        // Si on reçoit un message d'un contact différent, basculer vers cette conversation
+        const firstNewMessage = newMessages[0];
+        if (this.currentContactId !== String(firstNewMessage.fromUserId)) {
+          console.log(`Nouveau message reçu de ${firstNewMessage.fromUserId}, basculement automatique`);
+          await this.selectContact(String(firstNewMessage.fromUserId));
         }
-        messagesByContact[msg.fromUserId].push(msg);
-      });
 
-      // Vérifier chaque contact pour des nouveaux messages
-      for (const [contactId, messages] of Object.entries(messagesByContact)) {
-        const newMessages = messages.filter(msg => 
-          !this.displayedMessageIds.has(msg.id)
-        );
-
-        if (newMessages.length > 0) {
-          // NOUVEAU : Si on reçoit un message, basculer automatiquement vers cette conversation
-          if (this.currentContactId !== contactId) {
-            console.log(`Nouveau message reçu de ${contactId}, basculement automatique`);
-            await this.selectContact(contactId);
-          }
-
-          // Trier par timestamp
-          newMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-          
-          // Afficher les nouveaux messages
-          newMessages.forEach(message => {
+        // Afficher les nouveaux messages
+        newMessages.forEach(message => {
+          // Ne afficher que si c'est pour la conversation courante
+          if (String(message.fromUserId) === String(this.currentContactId)) {
             this.displayMessage(message, true);
-          });
+          }
+        });
 
-          // Basculer vers la vue conversation
-          this.switchToConversationView();
+        // Basculer vers la vue conversation
+        this.switchToConversationView();
 
-          this.messages.push(...newMessages);
-        }
+        this.messages.push(...newMessages);
       }
 
     } catch (error) {
@@ -285,7 +300,7 @@ export class MessagesManager {
     }
   }
 
-  // -------- POLLING CONVERSATION --------
+  // -------- POLLING CONVERSATION AMÉLIORÉ --------
   startPollingConversation(contactId) {
     this.stopPollingConversation();
     this.pollingInterval = setInterval(async () => {
@@ -301,36 +316,37 @@ export class MessagesManager {
   }
 
   async checkConversationMessages(contactId) {
-  try {
-    // Récupère tous les messages envoyés ET reçus pour la conversation
-    const urlA = `${this.API_BASE_URL}/messages?from=${contactId}&to=${this.currentUser.id}`;
-    const urlB = `${this.API_BASE_URL}/messages?from=${this.currentUser.id}&to=${contactId}`;
+    try {
+      // ✅ CORRECTION : Utiliser fromUserId et toUserId
+      const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
+      const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
 
-    const [receivedResp, sentResp] = await Promise.all([
-      fetch(urlA),
-      fetch(urlB)
-    ]);
+      const [receivedResp, sentResp] = await Promise.all([
+        fetch(urlA),
+        fetch(urlB)
+      ]);
 
-    const receivedMessages = await receivedResp.json();
-    const sentMessages = await sentResp.json();
+      const receivedMessages = await receivedResp.json();
+      const sentMessages = await sentResp.json();
 
-    const allMessages = [...receivedMessages, ...sentMessages];
-    allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      const allMessages = [...receivedMessages, ...sentMessages];
+      allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-    const newMessages = allMessages.filter(msg => !this.displayedMessageIds.has(msg.id));
+      const newMessages = allMessages.filter(msg => !this.displayedMessageIds.has(msg.id));
 
-    if (newMessages.length > 0) {
-      newMessages.forEach(message => {
-        this.displayMessage(message, true);
-      });
+      if (newMessages.length > 0) {
+        newMessages.forEach(message => {
+          this.displayMessage(message, true);
+        });
+      }
+
+      this.messages = allMessages;
+
+    } catch (error) {
+      console.error('Erreur lors de la vérification de la conversation:', error);
     }
-
-    this.messages = allMessages;
-
-  } catch (error) {
-    console.error('Erreur lors de la vérification de la conversation:', error);
   }
-}
+
   async selectContact(contactId) {
     this.currentContactId = contactId;
     setCurrentDiscussionContactId(contactId);
@@ -381,6 +397,7 @@ export class MessagesManager {
         this.displayedMessageIds.clear();
       }
 
+      // ✅ CORRECTION : Utiliser fromUserId et toUserId
       const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
       const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
 

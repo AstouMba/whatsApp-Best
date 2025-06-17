@@ -208,7 +208,7 @@ export class ContactsManager {
       const contactsRes = await fetch(`${this.API_BASE_URL}/contacts?userId=${userId}`);
       let contacts = await contactsRes.json();
 
-      // 2. Récupère TOUS les messages (envoyés ou reçus) - CORRIGÉ : tri par timestamp
+      // 2. ✅ CORRECTION : Utiliser fromUserId et toUserId pour récupérer les messages
       const allMessagesRes = await fetch(`${this.API_BASE_URL}/messages?_sort=timestamp&_order=desc`);
       const allMessages = await allMessagesRes.json();
 
@@ -274,7 +274,8 @@ export class ContactsManager {
         }
 
         const div = document.createElement('div');
-        div.className = "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#232d35] cursor-pointer";
+        div.className = "flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#232d35] cursor-pointer contact-item";
+        div.setAttribute('data-contact-id', contact.id);
         div.innerHTML = `
           <img src="${contact.avatar || 'https://randomuser.me/api/portraits/lego/1.jpg'}"
                class="w-12 h-12 rounded-full object-cover" alt="Avatar">
