@@ -1,4 +1,3 @@
-// messages.js - Gestion des messages privés avec auto-switch vers conversation
 import { setCurrentDiscussionContactId } from './contact-actions.js';
 
 export class MessagesManager {
@@ -10,6 +9,7 @@ export class MessagesManager {
     this.messages = [];
     this.isTyping = false;
     this.pollingInterval = null;
+    this.globalPollingInterval = null;
     this.lastMessageCount = 0;
     this.displayedMessageIds = new Set();
 
@@ -67,33 +67,28 @@ export class MessagesManager {
 
     try {
       const message = this.createMessage(content);
-      
-      // NOUVEAU : Basculer automatiquement vers la conversation
+
       this.switchToConversationView();
-      
-      // Afficher immédiatement le message envoyé
+
       this.displayMessage(message, true);
-      
-      // Envoyer au serveur
+
       await this.sendMessageToServer(message);
-      
-      // Vider le champ de saisie
+
       messageInput.value = '';
       messageInput.focus();
-      
+
     } catch (error) {
       console.error('Erreur lors de l\'envoi:', error);
       this.showError('messageError', 'Erreur lors de l\'envoi du message');
     }
   }
 
-  createMessage(content, type = 'text') {
+  createMessage(content) {
     return {
       id: this.generateMessageId(),
-      fromUserId: this.currentUser.id,
-      toUserId: this.currentContactId,
-      content: content,
-      type: type,
+      from: String(this.currentUser.id),
+      to: String(this.currentContactId),
+      text: content,
       timestamp: new Date().toISOString(),
       status: 'sending'
     };
@@ -115,8 +110,12 @@ export class MessagesManager {
 
       const savedMessage = await response.json();
       this.updateMessageStatus(message.id, 'sent');
+<<<<<<< HEAD
       
       // Remplacer le message temporaire par le message du serveur
+=======
+
+>>>>>>> 8b187fb (040)
       this.replaceTemporaryMessage(message.id, savedMessage);
 
       setTimeout(() => {
@@ -131,7 +130,10 @@ export class MessagesManager {
   }
 
   replaceTemporaryMessage(tempId, serverMessage) {
+<<<<<<< HEAD
     // Remplacer dans le tableau des messages
+=======
+>>>>>>> 8b187fb (040)
     const index = this.messages.findIndex(m => m.id === tempId);
     if (index !== -1) {
       this.messages[index] = serverMessage;
@@ -139,11 +141,17 @@ export class MessagesManager {
       this.messages.push(serverMessage);
     }
 
+<<<<<<< HEAD
     // Mettre à jour l'ID affiché
     this.displayedMessageIds.delete(tempId);
     this.displayedMessageIds.add(serverMessage.id);
 
     // Mettre à jour l'élément DOM
+=======
+    this.displayedMessageIds.delete(tempId);
+    this.displayedMessageIds.add(serverMessage.id);
+
+>>>>>>> 8b187fb (040)
     const messageElement = document.querySelector(`[data-message-id="${tempId}"]`);
     if (messageElement) {
       messageElement.setAttribute('data-message-id', serverMessage.id);
@@ -155,7 +163,7 @@ export class MessagesManager {
     if (!messagesList) return;
 
     if (this.displayedMessageIds.has(message.id)) return;
-    
+
     this.displayedMessageIds.add(message.id);
 
     const messageElement = this.createMessageElement(message);
@@ -167,12 +175,16 @@ export class MessagesManager {
   }
 
   createMessageElement(message) {
+<<<<<<< HEAD
     // ✅ CORRECTION CRITIQUE : Vérifier qui a envoyé le message
     const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
     
     console.log('Message:', message);
     console.log('fromUserId:', message.fromUserId, 'currentUser.id:', this.currentUser.id);
     console.log('isOwnMessage:', isOwnMessage);
+=======
+    const isOwnMessage = String(message.from) === String(this.currentUser.id);
+>>>>>>> 8b187fb (040)
 
     const div = document.createElement('div');
     div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
@@ -184,7 +196,11 @@ export class MessagesManager {
 
     div.innerHTML = `
       <div class="${bubbleClass} px-4 py-2 max-w-[70%] min-w-[100px] shadow-md">
+<<<<<<< HEAD
         <div class="text-sm leading-relaxed">${message.content}</div>
+=======
+        <div class="text-sm leading-relaxed">${message.text}</div>
+>>>>>>> 8b187fb (040)
         <div class="flex items-center gap-1 text-xs mt-1 opacity-70
           ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
           <span>${this.formatMessageTime(message.timestamp)}</span>
@@ -195,17 +211,25 @@ export class MessagesManager {
     return div;
   }
 
+<<<<<<< HEAD
   // -------- POLLING GLOBAL AMÉLIORÉ --------
+=======
+  // -------- POLLING GLOBAL CORRIGÉ : affiche toute la discussion courante --------
+>>>>>>> 8b187fb (040)
   startGlobalPolling() {
-    setInterval(async () => {
-      await this.checkForNewReceivedMessages();
+    if (this.globalPollingInterval) clearInterval(this.globalPollingInterval);
+    this.globalPollingInterval = setInterval(async () => {
+      await this.checkForNewConversationMessages();
     }, 2000);
   }
 
-  async checkForNewReceivedMessages() {
-    if (!this.currentUser) return;
+  // Corrigé : affiche tous les messages de la discussion courante (envoyés ET reçus)
+  async checkForNewConversationMessages() {
+    // Ne poll que si une conversation est sélectionnée
+    if (!this.currentUser || !this.currentContactId) return;
 
     try {
+<<<<<<< HEAD
       // Récupérer tous les messages reçus récents
       const response = await fetch(`${this.API_BASE_URL}/messages?toUserId=${this.currentUser.id}&_sort=timestamp&_order=desc`);
       const allReceivedMessages = await response.json();
@@ -238,65 +262,78 @@ export class MessagesManager {
         this.switchToConversationView();
 
         this.messages.push(...newMessages);
-      }
+=======
+      const urlA = `${this.API_BASE_URL}/messages?from=${this.currentContactId}&to=${this.currentUser.id}`;
+      const urlB = `${this.API_BASE_URL}/messages?from=${this.currentUser.id}&to=${this.currentContactId}`;
 
+      const [receivedResp, sentResp] = await Promise.all([
+        fetch(urlA),
+        fetch(urlB)
+      ]);
+
+      const receivedMessages = await receivedResp.json();
+      const sentMessages = await sentResp.json();
+
+      const allMessages = [...receivedMessages, ...sentMessages];
+      allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+      const newMessages = allMessages.filter(
+        msg => !this.displayedMessageIds.has(msg.id)
+      );
+
+      if (newMessages.length > 0) {
+        newMessages.forEach(message => {
+          this.displayMessage(message, true);
+        });
+        this.messages = allMessages;
+>>>>>>> 8b187fb (040)
+      }
     } catch (error) {
-      console.error('Erreur lors de la vérification des nouveaux messages:', error);
+      console.error('Erreur lors du polling de la conversation:', error);
     }
   }
 
-  // -------- NOUVELLE MÉTHODE : BASCULER VERS LA VUE CONVERSATION --------
   switchToConversationView() {
-    // Masquer la vue "Commencer une conversation"
     const startConversationView = document.getElementById('startConversationView');
     if (startConversationView) {
       startConversationView.style.display = 'none';
     }
 
-    // Afficher la vue de conversation
     const conversationView = document.getElementById('conversationView');
     if (conversationView) {
       conversationView.style.display = 'flex';
     }
 
-    // Masquer le placeholder "Sélectionner un contact"
     const noContactSelected = document.getElementById('noContactSelected');
     if (noContactSelected) {
       noContactSelected.style.display = 'none';
     }
 
-    // Afficher la zone de messages
     const messagesContainer = document.getElementById('messagesContainer');
     if (messagesContainer) {
       messagesContainer.style.display = 'flex';
     }
 
-    // S'assurer que la zone de saisie est visible
     const messageInputContainer = document.getElementById('messageInputContainer');
     if (messageInputContainer) {
       messageInputContainer.style.display = 'flex';
     }
   }
 
-  // -------- MÉTHODE UTILITAIRE : RETOUR À LA VUE INITIALE --------
   switchToStartConversationView() {
-    // Afficher la vue "Commencer une conversation"
     const startConversationView = document.getElementById('startConversationView');
     if (startConversationView) {
       startConversationView.style.display = 'flex';
     }
 
-    // Masquer la vue de conversation
     const conversationView = document.getElementById('conversationView');
     if (conversationView) {
       conversationView.style.display = 'none';
     }
 
-    // Réinitialiser l'état
     this.currentContactId = null;
     this.stopPollingConversation();
-    
-    // Vider l'affichage des messages
+
     const messagesList = document.getElementById('messagesList');
     if (messagesList) {
       messagesList.innerHTML = '';
@@ -321,9 +358,14 @@ export class MessagesManager {
 
   async checkConversationMessages(contactId) {
     try {
+<<<<<<< HEAD
       // ✅ CORRECTION : Utiliser fromUserId et toUserId
       const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
       const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
+=======
+      const urlA = `${this.API_BASE_URL}/messages?from=${contactId}&to=${this.currentUser.id}`;
+      const urlB = `${this.API_BASE_URL}/messages?from=${this.currentUser.id}&to=${contactId}`;
+>>>>>>> 8b187fb (040)
 
       const [receivedResp, sentResp] = await Promise.all([
         fetch(urlA),
@@ -345,7 +387,10 @@ export class MessagesManager {
       }
 
       this.messages = allMessages;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8b187fb (040)
     } catch (error) {
       console.error('Erreur lors de la vérification de la conversation:', error);
     }
@@ -355,7 +400,6 @@ export class MessagesManager {
     this.currentContactId = contactId;
     setCurrentDiscussionContactId(contactId);
 
-    // NOUVEAU : Basculer automatiquement vers la vue conversation
     this.switchToConversationView();
 
     this.updateCurrentContactDisplay();
@@ -401,9 +445,14 @@ export class MessagesManager {
         this.displayedMessageIds.clear();
       }
 
+<<<<<<< HEAD
       // ✅ CORRECTION : Utiliser fromUserId et toUserId
       const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
       const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
+=======
+      const urlA = `${this.API_BASE_URL}/messages?from=${contactId}&to=${this.currentUser.id}`;
+      const urlB = `${this.API_BASE_URL}/messages?from=${this.currentUser.id}&to=${contactId}`;
+>>>>>>> 8b187fb (040)
 
       const [receivedResp, sentResp] = await Promise.all([
         fetch(urlA),
@@ -529,6 +578,10 @@ export class MessagesManager {
 
   cleanup() {
     this.stopPollingConversation();
+    if (this.globalPollingInterval) {
+      clearInterval(this.globalPollingInterval);
+      this.globalPollingInterval = null;
+    }
     this.currentContactId = null;
     this.messages = [];
     this.lastMessageCount = 0;

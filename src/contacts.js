@@ -197,8 +197,10 @@ export class ContactsManager {
   }
 
   // Affichage style WhatsApp : discussions (avatar, nom, date, dernier message)
+  
+  // Affichage style WhatsApp : discussions (avatar, nom, date, dernier message)
   async renderDiscussionsFormat(filter = "", options = {}) {
-    const userId = this.currentUser.id;
+    const userId = String(this.currentUser.id);
     const contactsList = document.getElementById('contactsList');
     if (!contactsList) return;
     contactsList.innerHTML = "<p>Chargement...</p>";
@@ -208,7 +210,11 @@ export class ContactsManager {
       const contactsRes = await fetch(`${this.API_BASE_URL}/contacts?userId=${userId}`);
       let contacts = await contactsRes.json();
 
+<<<<<<< HEAD
       // 2. ✅ CORRECTION : Utiliser fromUserId et toUserId pour récupérer les messages
+=======
+      // 2. Récupère tous les messages (triés du plus récent au plus ancien)
+>>>>>>> 8b187fb (040)
       const allMessagesRes = await fetch(`${this.API_BASE_URL}/messages?_sort=timestamp&_order=desc`);
       const allMessages = await allMessagesRes.json();
 
@@ -222,10 +228,11 @@ export class ContactsManager {
 
       // 4. Pour chaque contact, trouve le dernier message échangé
       const discussions = contacts.map(contact => {
+        // On regarde tous les messages avec ce contact (from/to dans les deux sens)
         const messagesWithContact = allMessages.filter(
           msg =>
-            (String(msg.fromUserId) === String(userId) && String(msg.toUserId) === String(contact.id)) ||
-            (String(msg.toUserId) === String(userId) && String(msg.fromUserId) === String(contact.id))
+            (String(msg.from) === userId && String(msg.to) === String(contact.id)) ||
+            (String(msg.to) === userId && String(msg.from) === String(contact.id))
         );
         let lastMsg = null;
         if (messagesWithContact.length > 0) {
@@ -238,7 +245,7 @@ export class ContactsManager {
       let filteredDiscussions = discussions;
       if (options.unreadOnly) {
         filteredDiscussions = discussions.filter(({ lastMsg }) =>
-          lastMsg && !lastMsg.read && String(lastMsg.toUserId) === String(userId)
+          lastMsg && !lastMsg.read && String(lastMsg.to) === userId
         );
       }
       if (options.favoritesOnly) {
@@ -265,8 +272,8 @@ export class ContactsManager {
       filteredDiscussions.forEach(({ contact, lastMsg }) => {
         let messagePreview = "";
         if (lastMsg) {
-          messagePreview = lastMsg.content || 'Message sans texte';
-          if (String(lastMsg.fromUserId) === String(userId)) {
+          messagePreview = lastMsg.text || 'Message sans texte';
+          if (String(lastMsg.from) === userId) {
             messagePreview = `Vous: ${messagePreview}`;
           }
         } else {

@@ -1,5 +1,3 @@
-// src/contact-actions.js
-
 // Stocke l'id du contact sélectionné dans la liste (gauche)
 export function setSelectedContactId(contactId) {
   document.body.setAttribute('data-selected-contact-id', contactId);
