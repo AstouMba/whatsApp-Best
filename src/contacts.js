@@ -210,11 +210,7 @@ export class ContactsManager {
       const contactsRes = await fetch(`${this.API_BASE_URL}/contacts?userId=${userId}`);
       let contacts = await contactsRes.json();
 
-<<<<<<< HEAD
       // 2. ✅ CORRECTION : Utiliser fromUserId et toUserId pour récupérer les messages
-=======
-      // 2. Récupère tous les messages (triés du plus récent au plus ancien)
->>>>>>> 8b187fb (040)
       const allMessagesRes = await fetch(`${this.API_BASE_URL}/messages?_sort=timestamp&_order=desc`);
       const allMessages = await allMessagesRes.json();
 
