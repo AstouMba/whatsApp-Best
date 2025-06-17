@@ -145,29 +145,29 @@ export class MessagesManager {
     }
   }
 
-  createMessageElement(message) {
-    const isOwnMessage = String(message.fromUserId) === String(this.currentUser.id);
+ createMessageElement(message) {
+  const isOwnMessage = String(message.from) === String(this.currentUser.id);
 
-    const div = document.createElement('div');
-    div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
-    div.dataset.messageId = message.id;
+  const div = document.createElement('div');
+  div.className = `flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-3`;
+  div.dataset.messageId = message.id;
 
-    const bubbleClass = isOwnMessage 
-      ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12'
-      : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12';
+  const bubbleClass = isOwnMessage
+    ? 'bg-[#25d366] text-white rounded-2xl rounded-br-md ml-12'
+    : 'bg-[#2a2f32] text-white rounded-2xl rounded-bl-md mr-12';
 
-    div.innerHTML = `
-      <div class="${bubbleClass} px-4 py-2 max-w-[70%] min-w-[100px] shadow-md">
-        <div class="text-sm leading-relaxed">${message.content}</div>
-        <div class="flex items-center gap-1 text-xs mt-1 opacity-70
-          ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
-          <span>${this.formatMessageTime(message.timestamp)}</span>
-          ${isOwnMessage ? '<i class="fa-solid fa-check-double ml-1 text-xs"></i>' : ''}
-        </div>
+  div.innerHTML = `
+    <div class="${bubbleClass} px-4 py-2 max-w-[70%] min-w-[100px] shadow-md">
+      <div class="text-sm leading-relaxed">${message.text || message.content}</div>
+      <div class="flex items-center gap-1 text-xs mt-1 opacity-70
+        ${isOwnMessage ? 'justify-end text-green-100' : 'justify-start text-gray-300'}">
+        <span>${this.formatMessageTime(message.timestamp)}</span>
+        ${isOwnMessage ? '<i class="fa-solid fa-check-double ml-1 text-xs"></i>' : ''}
       </div>
-    `;
-    return div;
-  }
+    </div>
+  `;
+  return div;
+}
 
   // -------- POLLING GLOBAL --------
   startGlobalPolling() {
@@ -301,36 +301,36 @@ export class MessagesManager {
   }
 
   async checkConversationMessages(contactId) {
-    try {
-      const urlA = `${this.API_BASE_URL}/messages?fromUserId=${contactId}&toUserId=${this.currentUser.id}`;
-      const urlB = `${this.API_BASE_URL}/messages?fromUserId=${this.currentUser.id}&toUserId=${contactId}`;
+  try {
+    // Récupère tous les messages envoyés ET reçus pour la conversation
+    const urlA = `${this.API_BASE_URL}/messages?from=${contactId}&to=${this.currentUser.id}`;
+    const urlB = `${this.API_BASE_URL}/messages?from=${this.currentUser.id}&to=${contactId}`;
 
-      const [sentResp, receivedResp] = await Promise.all([
-        fetch(urlA),
-        fetch(urlB)
-      ]);
+    const [receivedResp, sentResp] = await Promise.all([
+      fetch(urlA),
+      fetch(urlB)
+    ]);
 
-      const sentMessages = await sentResp.json();
-      const receivedMessages = await receivedResp.json();
+    const receivedMessages = await receivedResp.json();
+    const sentMessages = await sentResp.json();
 
-      const allMessages = [...sentMessages, ...receivedMessages];
-      allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const allMessages = [...receivedMessages, ...sentMessages];
+    allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-      const newMessages = allMessages.filter(msg => !this.displayedMessageIds.has(msg.id));
-      
-      if (newMessages.length > 0) {
-        newMessages.forEach(message => {
-          this.displayMessage(message, true);
-        });
-      }
+    const newMessages = allMessages.filter(msg => !this.displayedMessageIds.has(msg.id));
 
-      this.messages = allMessages;
-
-    } catch (error) {
-      console.error('Erreur lors de la vérification de la conversation:', error);
+    if (newMessages.length > 0) {
+      newMessages.forEach(message => {
+        this.displayMessage(message, true);
+      });
     }
-  }
 
+    this.messages = allMessages;
+
+  } catch (error) {
+    console.error('Erreur lors de la vérification de la conversation:', error);
+  }
+}
   async selectContact(contactId) {
     this.currentContactId = contactId;
     setCurrentDiscussionContactId(contactId);

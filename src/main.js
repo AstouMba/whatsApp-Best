@@ -13,7 +13,7 @@ class App {
     this.registerManager = null;
     this.groupsManager = null;
     this.messagesManager = null;
-    this.currentUser = null;
+    this.currentUser = null;https://json-server-vzzw.onrender.com
 
     this.init();
   }
