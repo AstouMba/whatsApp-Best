@@ -136,7 +136,6 @@ class App {
     });
   }
 
-  // ✅ CORRIGÉ : Utilise renderDiscussionsFormat
   showDiscussionsPanel() {
     const contactsPanel = document.getElementById('contactsList');
     if (contactsPanel) contactsPanel.parentElement.classList.remove('hidden');
@@ -168,7 +167,6 @@ class App {
   }
 }
 
-// ✅ CORRIGÉ : Gestionnaire des boutons de filtre
 document.addEventListener('DOMContentLoaded', () => {
   const allBtn = document.getElementById('filterAllBtn');
   const unreadBtn = document.getElementById('filterUnreadBtn');
@@ -187,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // ✅ CORRIGÉ : Toutes les discussions
   if (allBtn) {
     allBtn.addEventListener('click', () => {
       setActiveBtn(allBtn);
@@ -200,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ✅ CORRIGÉ : Discussions non lues
   if (unreadBtn) {
     unreadBtn.addEventListener('click', () => {
       setActiveBtn(unreadBtn);
@@ -226,7 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ✅ CORRECT : Groupes (pas de changement)
   if (groupsBtn) {
     groupsBtn.addEventListener('click', () => {
       setActiveBtn(groupsBtn);
@@ -239,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ✅ CORRECT : Gestionnaire des paramètres
 document.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settingsBtn');
   const closeSettingsPanel = document.getElementById('closeSettingsPanel');
